@@ -21,21 +21,116 @@ include_once 'conn.php';
     $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : '';
     $EsAccesorio = isset($_POST['EsAccesorio']) ? intval($_POST['EsAccesorio']) : 0;
     $ubicacion = isset($_POST['ubicacion']) ? $_POST['ubicacion'] : '';
+    $fotos = isset($_POST['fotos']) ? $_POST['fotos'] : '';
 
-    // Acción para registrar un nuevo activo
     if ($accion == 'nuevoActivo') {
-        $sqlInsert = "INSERT INTO activos(id_tipo_activo, descripcion, marca, modelo, no_serie, id_interno, id_usuario, id_nave, cpu_info, monitor_info, cantidad, moi, costo, depreciacion, remanente, observaciones, created_at, es_accesorio, estatus, ubicacion)
-            VALUES ('$tipoActivo', '$descripcion', '$marca', '$modelo', '$noSerie', '$idInterno', '$usuario', '$nave', '$cpuInfo', '$monitorInfo', 1, '$moi', $costo, $depreciacion, $remanente, '$observaciones', NOW(), $EsAccesorio , 1, '$ubicacion')";
-        //echo $sqlInsert;
-        if ($conn->query($sqlInsert) === TRUE) {
-            $response = array('status' => 'success', 'message' => 'Activo registrado con exito.');
-        } else {
-            $response = array('status' => 'error', 'message' => 'Error al registrar el activo');
+        
+        // 1. RECIBIR VARIABLES (Usamos $_POST directo porque viene de FormData)        
+        $tipoActivo     = $_POST['tipoActivo'] ?? '';
+        $descripcion    = $_POST['descripcion'] ?? '';
+        $marca          = $_POST['marca'] ?? '';
+        $modelo         = $_POST['modelo'] ?? '';
+        $noSerie        = $_POST['noSerie'] ?? '';
+        $idInterno      = $_POST['idInterno'] ?? '';
+        $usuario        = $_POST['usuario'] ?? null; // Puede ser null si no asignan
+        $nave           = $_POST['nave'] ?? null;
+        $cpuInfo        = $_POST['cpuInfo'] ?? '';
+        $monitorInfo    = $_POST['monitorInfo'] ?? '';
+        $moi            = $_POST['moi'] ?? 0;
+        $costo          = $_POST['costo'] ?? 0;
+        $depreciacion   = $_POST['depreciacion'] ?? 0;
+        $remanente      = $_POST['remanente'] ?? 0;
+        $observaciones  = $_POST['observaciones'] ?? '';
+        $EsAccesorio    = $_POST['EsAccesorio'] ?? 0; // Viene como '1' o '0' desde JS
+        $ubicacion      = $_POST['ubicacion'] ?? '';
+                
+        $cantidad = 1;
+        $estatus = 1; // Activo
+
+        //Validar datos obligatorios
+        if (empty($tipoActivo) || empty($descripcion) || empty($marca) || empty($nave)) {   
+            $response = array(
+                'status' => 'error', 
+                'message' => 'Faltan datos obligatorios: Tipo de Activo, Descripción, Marca o Nave.'
+            );
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            exit;
         }
-        // Devolver la respuesta en formato JSON
+        // 2. INSERT SEGURO (Prepared Statement)
+        $sqlInsert = "INSERT INTO activos(id_tipo_activo, descripcion, marca, modelo, no_serie, id_interno, id_usuario, id_nave, cpu_info, monitor_info, cantidad, moi, 
+                                            costo, depreciacion, remanente, observaciones, created_at, es_accesorio, estatus, ubicacion)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)";
+
+        $stmt = $conn->prepare($sqlInsert);
+        
+        // "s" = string, "i" = integer, "d" = double (decimales)
+        // Ajusta las letras según tus tipos de dato exactos en MySQL
+        $stmt->bind_param("isssssiissiddddsiis", 
+                            $tipoActivo, $descripcion, $marca, $modelo, $noSerie, $idInterno, $usuario, $nave, $cpuInfo, $monitorInfo, $cantidad, $moi, 
+                            $costo, $depreciacion, $remanente, $observaciones, $EsAccesorio, $estatus, $ubicacion
+        );
+
+        if ($stmt->execute()) {
+            $ultimoId = $conn->insert_id; // Obtenemos ID para las fotos
+            $errorFotos = false;
+
+            // 3. MANEJO DE FOTOS 
+            if (isset($_FILES['fotos'])) {
+                $fotos = $_FILES['fotos'];
+                // Contamos cuántos archivos vienen
+                $totalArchivos = count($fotos['name']);
+
+                // Creamos carpeta si no existe
+                $directorio = 'imgActivos/';
+                if (!file_exists($directorio)) {
+                    mkdir($directorio, 0777, true);
+                }
+
+                for ($i = 0; $i < $totalArchivos; $i++) {
+                    // Verificar que no hubo error en la subida y que tiene nombre
+                    if ($fotos['error'][$i] === UPLOAD_ERR_OK && !empty($fotos['name'][$i])) {
+                        
+                        $nombreOriginal = $fotos['name'][$i];
+                        $tmpName        = $fotos['tmp_name'][$i];
+                        
+                        // Generar nombre único: activo_15_TIMESTAMP_nombre.jpg
+                        $nuevoNombre = 'activo_' . $ultimoId . '_' . time() . '_' . $i;
+                        $rutaDestino = $directorio . $nuevoNombre;
+
+                        if (move_uploaded_file($tmpName, $rutaDestino)) {
+                            // Insertar ruta en BD
+                            // Aquí podemos usar query normal o prepare (prepare es mejor)
+                            $sqlFoto = "INSERT INTO fotos_activos(id_activo, ruta_foto) VALUES (?, ?)";
+                            $stmtFoto = $conn->prepare($sqlFoto);
+                            $stmtFoto->bind_param("is", $ultimoId, $rutaDestino);
+                            $stmtFoto->execute();
+                            $stmtFoto->close();
+                        } else {
+                            $errorFotos = true;
+                        }
+                    }
+                }
+            }
+
+            $response = array(
+                'status' => 'success', 
+                'message' => 'Activo registrado con éxito.' . ($errorFotos ? ' (Hubo error al subir algunas fotos)' : '')
+            );
+
+        } else {
+            $response = array(
+                'status' => 'error', 
+                'message' => 'Error al guardar en BD: ' . $stmt->error
+            );
+        }
+
+        $stmt->close();
+
+        // Devolver JSON
         header('Content-Type: application/json');
         echo json_encode($response);
-
+        exit; // Terminar script
     }
 
     // Acción para cargar los activos
@@ -80,7 +175,7 @@ include_once 'conn.php';
                         a.id_interno, 
                         u.nombre AS usuario, 
                         n.nombre AS nave, 
-                        r.nombre AS region, /* Agregué región por si la necesitas */
+                        r.region AS region, 
                         a.cpu_info, 
                         a.monitor_info, 
                         a.cantidad, 
@@ -90,7 +185,7 @@ include_once 'conn.php';
                         a.remanente, 
                         a.observaciones, 
                         a.created_at,
-                        a.es_accesorio /* Importante para la lógica de JS */
+                        a.es_accesorio 
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
                     LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.id_usuario
@@ -277,6 +372,31 @@ include_once 'conn.php';
         // Devolver la respuesta en formato JSON
         header('Content-Type: application/json');
         echo json_encode($regiones);
+        exit;
+    }
+
+    if ($accion =='obtener_fotos'){
+        $idActivo = isset($_POST['id_activo']) ? $_POST['id_activo'] : 0;
+
+        $sqlFotos = "SELECT id, ruta_foto FROM fotos_activos WHERE id_activo = ?";
+        ///echo $sqlFotos;
+        if ($stmt = $conn->prepare($sqlFotos)) {
+            $stmt->bind_param("i", $idActivo);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $fotos = array();
+
+            while ($row = $result->fetch_assoc()) {
+                $fotos[] = $row;
+            }
+
+            // Devolver JSON
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'success', 'fotos' => $fotos]);
+            $stmt->close();
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error en la consulta']);
+        }
         exit;
     }
 

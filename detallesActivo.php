@@ -119,7 +119,14 @@
                                     </div>
                                 </div>
 
-                                <h6 class="text-secondary text-uppercase border-bottom pb-2 mb-4">3. Datos Financieros</h6>
+                                <h6 class="text-secondary text-uppercase border-bottom pb-2 mb-4">3. Fotos</h6>
+                                <div class="row mb-4">
+                                    <div id="detalleFotos" class="d-flex flex-wrap gap-3">
+                                        <!-- Fotos se cargarán aquí -->
+                                    </div>
+                                </div>
+
+                                <h6 class="text-secondary text-uppercase border-bottom pb-2 mb-4">4. Datos Financieros</h6>
                                 <div class="row mb-4">
                                     <div class="col-md-4">
                                         <div class="p-3 bg-light rounded border">
@@ -222,6 +229,7 @@
         $(document).ready(function() {            
             // Iniciar la carga de detalles del activo
             cargarDetalleActivo();
+            obtenerfotosActivo();
         });
 
         function convertirTexto(e) {
@@ -236,6 +244,43 @@
             let value = "; " + document.cookie;
             let parts = value.split("; " + name + "=");
             if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+
+        function obtenerfotosActivo() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var idActivo = urlParams.get('id');
+
+            $.ajax({
+                url: 'acciones_activos.php',
+                type: 'POST',
+                data: {
+                    opcion: 'obtener_fotos',
+                    id_activo: idActivo
+                },
+                dataType: 'json',
+                success: function(response) {
+                    //if (response.success) {
+                        let fotosContainer = $('#detalleFotos');
+                        fotosContainer.empty(); // Limpiar contenedor
+
+                        if (response.fotos.length > 0) {
+                            response.fotos.forEach(function(foto) {
+                                let fotoUrl = foto.ruta_foto;
+                                let fotoElement = `
+                                    <div class="card" style="width: 150px;">
+                                        <img src="${fotoUrl}" class="card-img-top" alt="Foto del Activo">
+                                    </div>
+                                `;
+                                fotosContainer.append(fotoElement);
+                            });
+                        } else {
+                            fotosContainer.append('<p class="text-muted">No hay fotos disponibles para este activo.</p>');
+                        }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en la solicitud AJAX:', error);
+                }
+            });
         }
 
     </script>

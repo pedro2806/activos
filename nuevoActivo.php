@@ -62,9 +62,9 @@
                                                 <select class="form-select" id="selectTipoActivo" name="id_tipo_activo" required>
                                                     <option value="">Seleccione tipo...</option>
                                                     <option value="1">EQ COMPUTO</option>
-                                                    <option value="2">MOBILIARIO</option>
-                                                    <option value="3">VEHICULO</option>
-                                                    <option value="4">PERIFERICO / ACCESORIO</option>
+                                                    <option value="2">MOBILIARIO y EQ DE OFICINA</option>
+                                                    <option value="3">MAQUINAS Y EQUIPOS</option>
+                                                    <option value="4">HERRAMIENTAS GENERALES</option>
                                                 </select>
                                             </div>
 
@@ -148,11 +148,11 @@
                                                     <option value="1">SFG</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label class="form-label">Ubicación</label>
                                                 <input type="text" class="form-control" name="ubicacion" id="ubicacion" placeholder="Ej. Estante, Bodega...">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-5">
                                                 <label class="form-label">Usuario Responsable</label>
                                                 <select class="form-select" id="slcRespoonsable" name="slcRespoonsable">
                                                     <option value="">Seleccione...</option>
@@ -197,6 +197,16 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="card shadow-sm mb-2">
+                                    <div class="card-body">
+                                        <h6 class="section-title">5. Fotos del Activo</h6>
+                                        <div class="mb-3">
+                                            <input class="form-control" type="file" name="fotos[]" accept="image/*" multiple>
+                                            <small class="d-block text-muted" style="font-size: 0.75rem;">Puedes subir varias imágenes a la vez.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
 
                                 <div class="card shadow-sm mb-2">
                                     <div class="card-body">

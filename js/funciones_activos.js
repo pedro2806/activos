@@ -1,89 +1,61 @@
 ////    Función para guardar un nuevo activo
-        function guardarActivo() {            
-                    
-                    var formData = getFormData('formActivos');
+        function guardarActivo() {
+            // 1. Obtener el formulario HTML
+            var formElement = document.getElementById('formActivos');
+            
+            // 2. Crear objeto FormData (Captura automáticamente todos los inputs, selects y archivos)
+            var formData = new FormData(formElement);
 
-                    var tipoActivo = formData['id_tipo_activo'];
-                    var descripcion = formData['descripcion'];
-                    var marca = formData['marca'];
-                    var modelo = formData['modelo'];
-                    var noSerie = formData['no_serie'];
-                    var idInterno = formData['id_interno'];
-                    var cpuInfo = formData['cpu_info'];
-                    var monitorInfo = formData['monitor_info'];
-                    var region = formData['selectRegion'];
-                    var nave = formData['id_nave'];
-                    var usuario = formData['id_usuario'];
-                    var moi = formData['moi'];
-                    var costo = formData['costo'];
-                    var depreciacion = formData['depreciacion'];
-                    var remanente = formData['remanente'];
-                    var observaciones = formData['observaciones'];                        
-                    var checkEsAccesorio = document.getElementById('checkEsAccesorio').checked; 
-                    var EsAccesorio = '';
-                    var ubicacion = formData['ubicacion'];
+            // 3. Agregar datos manuales que no estén en inputs o que requieran lógica extra
+            formData.append('opcion', 'nuevoActivo'); // Tu identificador para PHP
 
-                    if (checkEsAccesorio) {
-                        // Si el checkbox SÍ está marcado:
-                        EsAccesorio = '1';                 
-                    } else {
-                        // Si el checkbox NO está marcado:
-                        EsAccesorio = '0';                 
-                    }
-                    
-                    $.ajax({
-                        url: 'acciones_activos.php',
-                        method: 'POST',
-                        dataType: 'json',
-                        data: {
-                            opcion: 'nuevoActivo',
-                            tipoActivo: tipoActivo,
-                            descripcion: descripcion,
-                            marca: marca,
-                            modelo: modelo,
-                            noSerie: noSerie,
-                            idInterno: idInterno,
-                            cpuInfo: cpuInfo,
-                            monitorInfo: monitorInfo,
-                            region: region,
-                            nave: nave,
-                            usuario: usuario,
-                            moi: moi,
-                            costo: costo,
-                            depreciacion: depreciacion,
-                            remanente: remanente,
-                            observaciones: observaciones,
-                            EsAccesorio: EsAccesorio,
-                            ubicacion: ubicacion
-                            
-                        },
-                        success: function(data) {
-                            if (data.status === 'success') {
-                                Swal.fire({
-                                    title: "La actividad se registró con éxito!",
-                                    icon: "success",
-                                    draggable: true
-                                });
-                                // Redirigir
-                                window.location.href = 'verActivos.php';
+            // Lógica del Checkbox (FormData solo lo incluye si está checked, aquí forzamos 1 o 0)
+            var isChecked = document.getElementById('checkEsAccesorio').checked;
+            formData.set('es_accesorio', isChecked ? '1' : '0'); 
+            // Nota: Usamos .set() para sobrescribir si el input ya existía en el form
 
-                            } else {
-                                Swal.fire({
-                                    title: "Error al registrar la actividad: " + data.message,
-                                    icon: "error",
-                                    draggable: true
-                                });
+            // 4. Enviar vía AJAX
+            $.ajax({
+                url: 'acciones_activos.php',
+                method: 'POST',
+                data: formData,         // Enviamos el objeto FormData directo
+                
+                // --- ESTAS DOS LÍNEAS SON OBLIGATORIAS PARA ARCHIVOS ---
+                processData: false,     // Evita que jQuery transforme la data a string
+                contentType: false,     // Evita que jQuery pongan cabeceras incorrectas
+                // -------------------------------------------------------
+                
+                dataType: 'json',
+                success: function(data) {
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            title: "¡Guardado!",
+                            text: "La actividad se registró con éxito.",
+                            icon: "success",
+                            confirmButtonText: "Aceptar"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.href = 'verActivos'; // Redirige a la lista de activos
+                                formElement.reset(); // Limpia el formulario
                             }
-                        },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            Swal.fire({
-                                title: "La actividad no se pudo registrar!",
-                                icon: "error",      
-                                draggable: true
-                            });
-                        }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.message,
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error(textStatus, errorThrown);
+                    Swal.fire({
+                        title: "Error de Servidor",
+                        text: "No se pudo registrar la actividad. Revise la consola.",
+                        icon: "error"
                     });
-                    
+                }
+            });
         }
 
 ////    funcion para ver los activos

@@ -55,9 +55,9 @@
                                         <label class="form-label">Tipo de Activo</label>
                                         <select class="form-select" id="editTipoActivo" name="id_tipo_activo" required>
                                             <option value="1">EQ COMPUTO</option>
-                                            <option value="2">MOBILIARIO</option>
-                                            <option value="3">VEHICULO</option>
-                                            <option value="4">PERIFERICO</option>
+                                            <option value="2">MOBILIARIO y EQ DE OFICINA</option>
+                                            <option value="3">MAQUINAS Y EQUIPOS</option>
+                                            <option value="4">HERRAMIENTAS GENERALES</option>
                                         </select>
                                     </div>
                                     <div class="col-md-5">
