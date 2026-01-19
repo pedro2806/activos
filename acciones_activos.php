@@ -12,7 +12,7 @@ include_once 'conn.php';
     $cpuInfo = isset($_POST['cpuInfo']) ? $_POST['cpuInfo'] : '';
     $monitorInfo = isset($_POST['monitorInfo']) ? $_POST['monitorInfo'] : '';
     //$region = isset($_POST['region']) ? $_POST['region'] : '';
-    $nave = isset($_POST['nave']) ? $_POST['nave'] : '';
+    $nave = isset($_POST['selectNave']) ? $_POST['selectNave'] : '';
     $usuario = isset($_POST['usuario']) ? $_POST['usuario'] : '';
     $moi = isset($_POST['moi']) ? $_POST['moi'] : '';
     $costo = isset($_POST['costo']) ? floatval($_POST['costo']) : 0.0;
@@ -26,14 +26,14 @@ include_once 'conn.php';
     if ($accion == 'nuevoActivo') {
         
         // 1. RECIBIR VARIABLES (Usamos $_POST directo porque viene de FormData)        
-        $tipoActivo     = $_POST['tipoActivo'] ?? '';
+        $tipoActivo     = $_POST['selectTipoActivo'] ?? '';
         $descripcion    = $_POST['descripcion'] ?? '';
         $marca          = $_POST['marca'] ?? '';
         $modelo         = $_POST['modelo'] ?? '';
-        $noSerie        = $_POST['noSerie'] ?? '';
-        $idInterno      = $_POST['idInterno'] ?? '';
+        $noSerie        = $_POST['no_serie'] ?? '';
+        $idInterno      = $_POST['id_interno'] ?? '';
         $usuario        = $_POST['usuario'] ?? null; // Puede ser null si no asignan
-        $nave           = $_POST['nave'] ?? null;
+        $nave           = $_POST['selectNave'] ?? null;
         $cpuInfo        = $_POST['cpuInfo'] ?? '';
         $monitorInfo    = $_POST['monitorInfo'] ?? '';
         $moi            = $_POST['moi'] ?? 0;
@@ -48,7 +48,7 @@ include_once 'conn.php';
         $estatus = 1; // Activo
 
         //Validar datos obligatorios
-        if (empty($tipoActivo) || empty($descripcion) || empty($marca) || empty($nave)) {   
+        if (empty($tipoActivo)) {   
             $response = array(
                 'status' => 'error', 
                 'message' => 'Faltan datos obligatorios: Tipo de Activo, Descripción, Marca o Nave.'

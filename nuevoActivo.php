@@ -59,7 +59,7 @@
                                         <div class="row align-items-center mb-3">
                                             <div class="col-md-5">
                                                 <label class="form-label fw-bold">Tipo de Activo <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="selectTipoActivo" name="id_tipo_activo" required>
+                                                <select class="form-select" id="selectTipoActivo" name="selectTipoActivo" required>
                                                     <option value="">Seleccione tipo...</option>
                                                     <option value="1">EQ COMPUTO</option>
                                                     <option value="2">MOBILIARIO y EQ DE OFICINA</option>
@@ -80,14 +80,14 @@
                                             
                                             <div class="col-md-2">
                                                 <label class="form-label">Cantidad</label>
-                                                <input type="number" class="form-control" name="cantidad" value="1" min="1">
+                                                <input type="number" class="form-control" id="cantidad" name="cantidad" value="1" min="1">
                                             </div>
                                         </div>
 
                                         <div class="row">
                                             <div class="col-12">
                                                 <label class="form-label">Descripción del Activo <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" name="descripcion" placeholder="Ej. LAPTOP, ESCRITORIO EN L, MONITOR 24 PULGADAS" required>
+                                                <input type="text" class="form-control" id="descripcion" name="descripcion" placeholder="Ej. LAPTOP, ESCRITORIO EN L, MONITOR 24 PULGADAS" required>
                                             </div>
                                         </div>
                                     </div>
@@ -143,7 +143,7 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label">Nave / Planta</label>
-                                                <select class="form-select" id="selectNave" name="id_nave">
+                                                <select class="form-select" id="selectNave" name="selectNave">
                                                     <option selected disabled>Seleccione Región primero</option>
                                                     <option value="1">SFG</option>
                                                 </select>
