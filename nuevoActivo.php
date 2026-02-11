@@ -294,9 +294,9 @@
     <script type="text/javascript">
         
     function calcularRemanente() {
-        var moi = parseFloat(document.getElementById('inputMoi').value) || 0;
+        var costo = parseFloat(document.getElementById('costo').value) || 0;
         var depreciacion = parseFloat(document.getElementById('inputDepreciacion').value) || 0;
-        var remanente = moi - depreciacion;
+        var remanente = costo - depreciacion;
         document.getElementById('inputRemanente').value = remanente.toFixed(2);
         calcularDepreciacion();
     }
