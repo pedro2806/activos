@@ -19,6 +19,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css" rel="stylesheet">
 
 </head>
 
@@ -41,7 +44,7 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h2 class="text-primary fw-bold mb-0">Inventario de Activos</h2>
+                        <h3 class="text-primary fw-bold mb-0">Inventario de Activos</h3>
                     </div>
                     <a href="nuevoActivo" class="btn btn-primary">
                         <i class="bi bi-plus-lg"></i> Nuevo Activo
@@ -51,15 +54,15 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="tablaActivos" name="tablaActivos">
-                                <thead class="bg-light">
-                                    <tr class="text-secondary text-uppercase text-small">
-                                        <th scope="col" class="ps-4">Tipo</th>
+                            <table class="table table-hover" id="tablaActivos" name="tablaActivos">
+                                <thead class=" table-primary">
+                                    <tr class="text-secondary text-small">
+                                        <th scope="col">Tipo</th>
                                         <th scope="col">Descripción</th>
                                         <th scope="col">Marca / Modelo</th>
                                         <th scope="col">Ubicación</th>
-                                        <th scope="col">Asignado a</th>
-                                        <th scope="col" class="text-end">Costo / Remanente</th>
+                                        <th scope="col">Asignado</th>
+                                        <th scope="col">Costo / Remanente</th>
                                         <th scope="col">Observaciones</th>
                                         <th scope="col" class="text-center">Acciones</th>
                                     </tr>
@@ -137,6 +140,10 @@
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/funciones_activos.js"></script>
 
@@ -144,38 +151,17 @@
         $(document).ready(function() {            
             // Iniciar la carga de activos al cargar la página            
             verActivos(); 
-                                // INICIALIZACIÓN DE DATATABLES
-            $('#tablaActivos').DataTable({
-                "responsive": true,
-                "ordering": true,
-                "lengthMenu": [ 5, 10, 25, 50, -1],
-                "pageLength": 10,
-                "searching": false, // Mantienes la búsqueda deshabilitada
-                "language": {
-                    // Traducciones completas (se mantienen tus traducciones)
-                    "sProcessing": "Procesando...",
-                    "sLengthMenu": "Mostrar _MENU_ registros",
-                    "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "Ningún dato disponible en esta tabla",
-                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":"",
-                    "sSearch": "Buscar:",
-                    "sUrl": "",
-                    "sInfoThousands": ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst": "Primero",
-                        "sLast": "Último",
-                        "sNext": "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    }
-                }
+            
+            // INICIALIZACIÓN DE DATATABLES            
+            tablaEquiposDataTable = $('#tablaActivos').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                paging: true,
+                pageLength: 10,
+                responsive: true,
+                ordering: true,
+                searching: true,
             });
         });
 

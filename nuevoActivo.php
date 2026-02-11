@@ -177,14 +177,14 @@
                                                 <label class="form-label">Costo Actual</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text">$</span>
-                                                    <input type="number" step="0.01" class="form-control" name="costo" placeholder="0.00">
+                                                    <input type="number" step="0.01" class="form-control" onblur="calcularDepreciacion()" name="costo" id="costo" placeholder="0.00">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label">Depreciación Acum.</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text">$</span>
-                                                    <input type="number" step="0.01" class="form-control calc-financial" name="depreciacion" id="inputDepreciacion" placeholder="0.00">
+                                                    <input type="number" step="0.01" class="form-control calc-financial" onblur="calcularRemanente()" name="depreciacion" id="inputDepreciacion" placeholder="0.00">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
@@ -298,6 +298,15 @@
         var depreciacion = parseFloat(document.getElementById('inputDepreciacion').value) || 0;
         var remanente = moi - depreciacion;
         document.getElementById('inputRemanente').value = remanente.toFixed(2);
+        calcularDepreciacion();
+    }
+
+    function calcularDepreciacion() {
+        var moi = parseFloat(document.getElementById('inputMoi').value) || 0;
+        var costo = parseFloat(document.getElementById('costo').value) || 0;
+        var Depreciacion = moi - costo;
+        document.getElementById('inputDepreciacion').value = Depreciacion.toFixed(2);
+        calcularRemanente();
     }
 
     function conjunto_computadora() {
