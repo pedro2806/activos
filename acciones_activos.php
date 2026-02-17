@@ -135,15 +135,19 @@ include_once 'conn.php';
 
     // Acción para cargar los activos
     if ($accion == 'verActivos') {
-        $sqlSelect = "SELECT a.id, ta.nombre as tipo_activo, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno, u.nombre AS usuario, n.nombre AS nave, 
-                            a.cpu_info, a.monitor_info, 
-                            a.cantidad, a.moi, a.costo, a.depreciacion, a.remanente, a.observaciones, a.created_at, a.ubicacion
-                    FROM activos a
-                    LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
-                    LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.id_usuario
-                    LEFT JOIN cat_naves n ON a.id_nave = n.id
-                    WHERE a.estatus = 1
-                    ORDER BY a.id DESC";
+        $sqlSelect = "SELECT 
+    a.id, ta.nombre as tipo_activo, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno, 
+    u.nombre AS usuario, n.nombre AS nave, a.cpu_info, a.monitor_info, a.cantidad, a.moi, 
+    a.costo, a.depreciacion, a.remanente, a.observaciones, a.created_at, a.ubicacion
+FROM activos a
+LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
+LEFT JOIN mess_rrhh.usuarios u ON (
+    (a.id_tipo_activo = 1 AND a.id_usuario = u.noEmpleado) OR 
+    (a.id_tipo_activo != 1 AND a.id_usuario = u.id_usuario)
+)
+LEFT JOIN cat_naves n ON a.id_nave = n.id
+WHERE a.estatus = 1
+ORDER BY a.id DESC";
         
         $result = $conn->query($sqlSelect);
         $activos = array();
