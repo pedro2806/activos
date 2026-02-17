@@ -48,6 +48,17 @@
         .bg-icon-danger  { background-color: #e74a3b; }
     </style>
 
+<?php
+    $usuariosDash = array(183,  276,  523, 191);
+
+    if (in_array($_COOKIE['noEmpleado'], $usuariosDash)) {
+        // El usuario tiene permiso para ver la página
+    } else {
+        header("Location: nuevoActivo.php");
+    }
+?>
+
+
 </head>
 
 <body id="page-top">
