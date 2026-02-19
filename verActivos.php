@@ -146,11 +146,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/funciones_activos.js"></script>
+    <script src="../loginMaster/funcionesGlobales.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function() {            
             // Iniciar la carga de activos al cargar la página            
-            verActivos(); 
+            verActivos();             
             
             // INICIALIZACIÓN DE DATATABLES            
             tablaEquiposDataTable = $('#tablaActivos').DataTable({
@@ -178,6 +179,23 @@
             let parts = value.split("; " + name + "=");
             if (parts.length === 2) return parts.pop().split(";").shift();
         }
+
+        async function verificarAcceso() {
+            // 1. Agregamos await para esperar la respuesta
+            const respuesta = await validaOpciones('activos', 'editarActivo');
+            
+            // 2. Accedemos a la estructura correcta según tu PHP: respuesta.data[0].cuantos
+            const cuantos = (respuesta && respuesta.status === 'success') 
+                            ? parseInt(respuesta.data[0].cuantos) 
+                            : 0;
+                                        
+            if (cuantos <= 0) {            
+                return "NoEdita";
+            }else {
+                return "Edita";
+            }
+        }
+
 
     </script>
 </body>

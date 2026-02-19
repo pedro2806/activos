@@ -59,7 +59,9 @@
         }
 
 ////    funcion para ver los activos
-        function verActivos() {
+        async function verActivos() {
+            const permiso = await verificarAcceso();
+
             $.ajax({
                 url: 'acciones_activos.php',
                 method: 'POST',
@@ -94,20 +96,22 @@
                             badgeTipo = '<span class="badge bg-dark text-white">'+activo.tipo_activo+'</span>';
                         }
 
-
-                        let opciones = `
-                            <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-sm btn-outline-primary" title="Ver Detalles" onclick="verDetallesActivo(${activo.id})">
-                                    <i class="fas fa-fw fa-eye"></i> 
-                                </button>
-                                <button class="btn btn-sm btn-outline-warning" title="Editar Activo" onclick="editarActivo(${activo.id})">
-                                    <i class="fas fa-fw fa-pen"></i> 
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" title="Eliminar Activo" onclick="eliminarActivo(${activo.id})">
-                                    <i class="fas fa-fw fa-trash"></i>
-                                </button>
-                            </div>
-                        `;
+                        let opciones = '<i class="fas fa-fw fa-eye"></i>';
+                        if(permiso === 'Edita') {
+                            opciones = `
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" title="Ver Detalles" onclick="verDetallesActivo(${activo.id})">
+                                        <i class="fas fa-fw fa-eye"></i> 
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" title="Editar Activo" onclick="editarActivo(${activo.id})">
+                                        <i class="fas fa-fw fa-pen"></i> 
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Eliminar Activo" onclick="eliminarActivo(${activo.id})">
+                                        <i class="fas fa-fw fa-trash"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }
                         
                         var fila = [
                             badgeTipo,
