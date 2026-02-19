@@ -48,17 +48,6 @@
         .bg-icon-danger  { background-color: #e74a3b; }
     </style>
 
-<?php
-    $usuariosDash = array(183,  276,  523, 191);
-
-    if (in_array($_COOKIE['noEmpleado'], $usuariosDash)) {
-        // El usuario tiene permiso para ver la página
-    } else {
-        header("Location: nuevoActivo.php");
-    }
-?>
-
-
 </head>
 
 <body id="page-top">
@@ -236,17 +225,34 @@
     <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../loginMaster/funcionesGlobales.js"></script>
 
     <script type="text/javascript">
         
+
         // Variables globales para los gráficos
         let chartInstanceTipos = null;
         let chartInstanceRegion = null;
 
         $(document).ready(function() {
-            // Cargar datos al iniciar
-            cargarDashboard();
+            verificarAcceso(); // Verificar acceso al cargar la página                        
         });
+
+        async function verificarAcceso() {
+            // 1. Agregamos await para esperar la respuesta
+            const respuesta = await validaOpciones('activos', 'VistaDashboard');
+            
+            // 2. Accedemos a la estructura correcta según tu PHP: respuesta.data[0].cuantos
+            const cuantos = (respuesta && respuesta.status === 'success') 
+                            ? parseInt(respuesta.data[0].cuantos) 
+                            : 0;
+
+            if (cuantos <= 0) {            
+                window.location.href = "nuevoActivo.php";
+            }else {
+                cargarDashboard(); // Cargar datos del dashboard si tiene acceso
+            }
+        }
 
         function cargarDashboard() {
             $.ajax({

@@ -20,15 +20,6 @@
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-<?php
-    $usuariosRegistran = array(212, 14, 42, 161, 403, 183, 521, 276, 26, 147, 189, 177, 45, 26, 525, 435, 489, 523, 298, 81, 203, 8, 278, 206, 123, 516);
-
-    if (in_array($_COOKIE['noEmpleado'], $usuariosRegistran)) {
-        // El usuario tiene permiso para ver la página
-    } else {
-        //header("Location: seguimiento_actividades.php");
-    }
-?>
 </head>
 
 <body id="page-top">
@@ -290,6 +281,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/funciones_activos.js"></script>
+    <script src="../loginMaster/funcionesGlobales.js"></script>
 
     <script type="text/javascript">
         
@@ -320,8 +312,24 @@
         }
     }
 
-    $(document).ready(function() {        
+    async function verificarAcceso() {
+        // 1. Agregamos await para esperar la respuesta
+        const respuesta = await validaOpciones('activos', 'agregarActivoNuevo');
+        
+        // 2. Accedemos a la estructura correcta según tu PHP: respuesta.data[0].cuantos
+        const cuantos = (respuesta && respuesta.status === 'success') 
+                        ? parseInt(respuesta.data[0].cuantos) 
+                        : 0;
 
+        if (cuantos <= 0) {            
+            window.location.href = "verActivos.php";
+        }else {
+            
+        }
+    }
+
+    $(document).ready(function() {        
+        verificarAcceso();
         conjunto_computadora();
         
         getEmpleados('#slcRespoonsable');
