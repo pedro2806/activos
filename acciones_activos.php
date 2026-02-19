@@ -192,7 +192,7 @@ ORDER BY a.id DESC";
                         a.es_accesorio 
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
-                    LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.id_usuario
+                    LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.noEmpleado
                     LEFT JOIN cat_naves n ON a.id_nave = n.id
                     LEFT JOIN cat_regiones r ON n.id_region = r.id
                     WHERE a.id = ?"; // Usamos placeholder ?
