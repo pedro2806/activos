@@ -305,7 +305,7 @@ include_once 'conn.php';
         }
     }
 
-if ($accion == 'guardarEdicion') {
+    if ($accion == 'guardarEdicion') {
         
         // 1. Recolección de datos (con manejo de nulos por seguridad)
         $id             = $_POST['id'] ?? 0;
@@ -527,14 +527,35 @@ if ($accion == 'guardarEdicion') {
 // subir fotos para activo editado
     if($accion == 'subirFotos') {
         
-        // 1. Validar que vengan los datos esperados
+        $idActivo = (int) $_POST['idActivo']; // Forzamos a entero por seguridad
+
+        //Validar que vengan los datos esperados
         if (!isset($_FILES['fotos']) || !isset($_POST['idActivo'])) {
             echo json_encode(['status' => 'error', 'message' => 'Faltan datos para subir las fotos']);
             exit;
         }
 
+        //Validar que la suma de las fotos en BD y la nueva sea mejor o igual a 3
+        $sqlCountFotos = "SELECT COUNT(*) as total FROM fotos_activos WHERE id_activo = ?";
+        if ($stmtCount = $conn->prepare($sqlCountFotos)) {
+            $stmtCount->bind_param("i", $idActivo);
+            $stmtCount->execute();
+            $result = $stmtCount->get_result();
+            $row = $result->fetch_assoc();
+            $totalFotosBD = (int) $row['total'];            
+            $stmtCount->close();
+            $totalNuevasFotos = count($_FILES['fotos']['name']);
+            if ($totalFotosBD + $totalNuevasFotos > 3) {
+                echo json_encode(['status' => 'error', 'message' => "No se pueden subir más de 3 fotos por activo. Actualmente tiene $totalFotosBD fotos. Intente subir menos fotos."]);
+                exit;
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error en consulta para contar fotos']);
+            exit;
+        }
+
         $fotos = $_FILES['fotos'];
-        $idActivo = (int) $_POST['idActivo']; // Forzamos a entero por seguridad
+        
         $totalArchivos = count($fotos['name']);
         
         $fotosSubidasExito = 0; // Contador para saber si todo salió bien
