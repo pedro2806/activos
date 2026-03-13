@@ -330,7 +330,7 @@ if ($accion == 'guardarEdicion') {
         $remanente      = $_POST['remanente'] ?? 0;
         $observaciones  = $_POST['observaciones'] ?? '';
 
-        $fechaAdquisicion = $_POST['editFechaAdquisicion'] ?? null;
+        $fechaAdquisicion = empty($_POST['editFechaAdquisicion']) ? null : $_POST['editFechaAdquisicion'];
         $region         = $_POST['selectRegion'] ?? null; 
 
         // Validar que tengamos un ID válido para actualizar
