@@ -53,7 +53,8 @@
                                 <div class="row mb-3">
                                     <div class="col-md-5">
                                         <label class="form-label">Tipo de Activo</label>
-                                        <select class="form-select" id="editTipoActivo" name="id_tipo_activo" required>
+                                        <select class="form-select" id="editTipoActivo" name="editTipoActivo" required>
+                                            <option value="">Selecciona...</option>
                                             <option value="1">EQ COMPUTO</option>
                                             <option value="2">MOBILIARIO y EQ DE OFICINA</option>
                                             <option value="3">MAQUINAS Y EQUIPOS</option>
@@ -69,24 +70,30 @@
                                 </div>
 
                                 <h6 class="text-muted text-uppercase mb-3 mt-4 small fw-bold border-bottom pb-2">Datos del Equipo</h6>
-                                <div class="row mb-3">
-                                    <div class="col-md-12 mb-3">
+                                <div class="row mb-3 bg-light">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Fecha de Adquisición</label>
+                                        <input type="date" class="form-control" id="editFechaAdquisicion" name="editFechaAdquisicion">
+                                    </div>
+                                    <div class="col-md-8 mb-3">
                                         <label class="form-label">Descripción</label>
                                         <input type="text" class="form-control" id="editDescripcion" name="descripcion" required>
                                     </div>
-                                    <div class="col-md-4">
+                                </div>
+                                <div class="row mb-3 ">
+                                    <div class="col-md-3">
                                         <label class="form-label">Marca</label>
                                         <input type="text" class="form-control" id="editMarca" name="marca">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Modelo</label>
                                         <input type="text" class="form-control" id="editModelo" name="modelo">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">No. Serie</label>
                                         <input type="text" class="form-control" id="editSerie" name="no_serie">
                                     </div>
-                                    <div class="col-md-4 mt-3">
+                                    <div class="col-md-3">
                                         <label class="form-label">ID Interno</label>
                                         <input type="text" class="form-control" id="editIdInterno" name="id_interno">
                                     </div>
@@ -108,18 +115,23 @@
 
                                 <h6 class="text-muted text-uppercase mb-3 mt-4 small fw-bold border-bottom pb-2">Ubicación</h6>
                                 <div class="row mb-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Región</label>
+                                        <select class="form-select" id="editSelectRegion" name="selectRegion">
+                                            <option value="">Seleccione...</option>                                            
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
                                         <label class="form-label">Nave / Planta</label>
                                         <select class="form-select" id="editNave" name="id_nave">
                                             <option value="1">SFG</option>
                                             <option value="2">EL MARQUES</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label">Usuario Responsable</label>
-                                        <select class="form-select" id="editUsuario" name="id_usuario">
-                                            <option value="1">OMAR MORA</option>
-                                            <option value="2">OTRO USUARIO</option>
+                                        <select class="form-select" id="editSlcResponsable" name="editSlcResponsable">
+                                            <option value="">Seleccione...</option>                                            
                                         </select>
                                     </div>
                                 </div>
@@ -144,11 +156,21 @@
                                     <label class="form-label">Observaciones</label>
                                     <textarea class="form-control" id="editObservaciones" name="observaciones" rows="3"></textarea>
                                 </div>
+                                <!-- opcion para ver y editar fotos del activo -->
+                                <div class="row mb-3">
+                                    <label class="form-label">Fotos del Activo</label>
+                                    <div class="col-md-4 mb-3">                                                                                
+                                        <input class="form-control" type="file" name="fotos[]" id="inputFotos" accept="image/*" multiple>
+                                        <input type="button" id="btnsubirFotos" onClick="subirFotos()" class="btn btn-sm btn-outline-secondary mt-2" value="Subir fotos">
+                                    </div>
+                                    <div class="col-md-8" id="fotosExistentes" class="d-flex flex-wrap gap-2">                                        
+                                    </div>
+                                </div>
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                     <button type="submit" class="btn btn-primary px-5">Guardar Cambios</button>
                                 </div>
-
+                                
                             </form>
                         </div>
                     </div>
@@ -223,13 +245,23 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-        
+            getEmpleados('#editSlcResponsable');
+            getRegiones('#editSelectRegion');
+
+            // Inicializa Select2 en el campo de responsable
+            $('#editSlcResponsable').select2({            
+                placeholder: "Seleccione...",
+                width: '100%'
+            });
+
+
             // 1. OBTENER ID DE LA URL Y CARGAR DATOS
             const urlParams = new URLSearchParams(window.location.search);
             const idActivo = urlParams.get('id');
 
             if(idActivo) {
                 cargarDatosParaEditar(idActivo);
+                cargarFotosExistentes(idActivo);
             } else {
                 Swal.fire('Error', 'No se especificó un ID de activo', 'error');
             }
@@ -272,7 +304,7 @@
                                 text: 'El activo se modificó correctamente',
                                 icon: 'success'
                             }).then(() => {
-                                window.location.href = 'verActivos'; // Volver al listado
+                                window.location.reload(); // Recargar para ver cambios o redirigir a detalle
                             });
                         } else {
                             Swal.fire('Error', response.message, 'error');
@@ -284,7 +316,7 @@
                 });
             });
         });
-        document.getElementById('selectTipoActivo').addEventListener('change', function() {
+        document.getElementById('editTipoActivo').addEventListener('change', function() {
             var techDiv = document.getElementById('techFields');
             // Asumiendo que el texto de la opción seleccionada contiene 'COMPUTO'
             var textoSeleccionado = this.options[this.selectedIndex].text;
@@ -293,18 +325,7 @@
                 techDiv.classList.remove('d-none');
             } else {
                 techDiv.classList.add('d-none');
-            }
-                
-            //cargar empleados
-            //empleadoSolicita('#slcRespoonsable');
-            
-
-            // Inicializa Select2 en el campo de responsable
-            $('#slcRespoonsable').select2({            
-                placeholder: "Seleccione...",
-                width: '100%'
-            });
-
+            }                            
             
         });
 

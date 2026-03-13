@@ -11,7 +11,7 @@ include_once 'conn.php';
     $idInterno = isset($_POST['idInterno']) ? $_POST['idInterno'] : '';
     $cpuInfo = isset($_POST['cpuInfo']) ? $_POST['cpuInfo'] : '';
     $monitorInfo = isset($_POST['monitorInfo']) ? $_POST['monitorInfo'] : '';
-    //$region = isset($_POST['region']) ? $_POST['region'] : '';
+    $region = isset($_POST['region']) ? $_POST['region'] : '';
     $nave = isset($_POST['selectNave']) ? $_POST['selectNave'] : '';
     $usuario = isset($_POST['usuario']) ? $_POST['usuario'] : '';
     $moi = isset($_POST['moi']) ? $_POST['moi'] : '';
@@ -21,6 +21,7 @@ include_once 'conn.php';
     $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : '';
     $EsAccesorio = isset($_POST['EsAccesorio']) ? intval($_POST['EsAccesorio']) : 0;
     $ubicacion = isset($_POST['ubicacion']) ? $_POST['ubicacion'] : '';
+    $fechaAdquisicion = isset($_POST['fecha_adquisicion']) ? $_POST['fecha_adquisicion'] : null;
     $fotos = isset($_POST['fotos']) ? $_POST['fotos'] : '';
 
     if ($accion == 'nuevoActivo') {
@@ -43,12 +44,13 @@ include_once 'conn.php';
         $observaciones  = $_POST['observaciones'] ?? '';
         $EsAccesorio    = $_POST['EsAccesorio'] ?? 0; // Viene como '1' o '0' desde JS
         $ubicacion      = $_POST['ubicacion'] ?? '';
-                
-        $cantidad = 1;
+        $region         = $_POST['selectRegion'] ?? ''; 
+        $fechaAdquisicion = $_POST['fecha_adquisicion'] ?? null;                
+        $cantidad = $_POST['cantidad'] ?? 1; // Asumimos que si no viene, es 1
         $estatus = 1; // Activo
 
-        //Validar datos obligatorios
-        if (empty($tipoActivo)) {   
+        // Validar datos obligatorios (Corregido para evaluar todos los mencionados)
+        if (empty($tipoActivo) || empty($descripcion) || empty($marca) || empty($nave)) {   
             $response = array(
                 'status' => 'error', 
                 'message' => 'Faltan datos obligatorios: Tipo de Activo, Descripción, Marca o Nave.'
@@ -57,18 +59,50 @@ include_once 'conn.php';
             echo json_encode($response);
             exit;
         }
+
         // 2. INSERT SEGURO (Prepared Statement)
-        $sqlInsert = "INSERT INTO activos(id_tipo_activo, descripcion, marca, modelo, no_serie, id_interno, id_usuario, id_nave, cpu_info, monitor_info, cantidad, moi, 
-                                            costo, depreciacion, remanente, observaciones, created_at, es_accesorio, estatus, ubicacion)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)";
+        // Corregido: 21 columnas + 1 NOW() = 21 signos '?'
+        $sqlInsert = "INSERT INTO activos(
+                            id_tipo_activo, descripcion, marca, modelo, no_serie, 
+                            id_interno, id_usuario, id_nave, cpu_info, monitor_info, 
+                            cantidad, moi, costo, depreciacion, remanente, 
+                            observaciones, es_accesorio, estatus, ubicacion, region, 
+                            fecha_adquisicion, fecha_registro
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
         $stmt = $conn->prepare($sqlInsert);
         
-        // "s" = string, "i" = integer, "d" = double (decimales)
-        // Ajusta las letras según tus tipos de dato exactos en MySQL
-        $stmt->bind_param("isssssiissiddddsiis", 
-                            $tipoActivo, $descripcion, $marca, $modelo, $noSerie, $idInterno, $usuario, $nave, $cpuInfo, $monitorInfo, $cantidad, $moi, 
-                            $costo, $depreciacion, $remanente, $observaciones, $EsAccesorio, $estatus, $ubicacion
+        if (!$stmt) {
+            // Esto te ayudará a ver si hay un error en la sintaxis SQL antes de ejecutar
+            echo json_encode(['status' => 'error', 'message' => 'Error en prepare: ' . $conn->error]);
+            exit;
+        }
+
+        // Corregido: Cadena de 21 letras que coincide exactamente con las 21 variables
+        // i=integer, s=string, d=double(decimal). 
+        // Asumo que 'region' es un ID (i). Si es texto, cambia esa 'i' por 's'.
+        $stmt->bind_param("isssssiissiddddsiisis", 
+            $tipoActivo, 
+            $descripcion, 
+            $marca, 
+            $modelo, 
+            $noSerie, 
+            $idInterno, 
+            $usuario, 
+            $nave, 
+            $cpuInfo, 
+            $monitorInfo, 
+            $cantidad, 
+            $moi, 
+            $costo, 
+            $depreciacion, 
+            $remanente, 
+            $observaciones, 
+            $EsAccesorio, 
+            $estatus, 
+            $ubicacion, 
+            $region, 
+            $fechaAdquisicion
         );
 
         if ($stmt->execute()) {
@@ -93,10 +127,11 @@ include_once 'conn.php';
                         
                         $nombreOriginal = $fotos['name'][$i];
                         $tmpName        = $fotos['tmp_name'][$i];
+                        $tipoArchivo     = $fotos['type'][$i];
                         
                         // Generar nombre único: activo_15_TIMESTAMP_nombre.jpg
                         $nuevoNombre = 'activo_' . $ultimoId . '_' . time() . '_' . $i;
-                        $rutaDestino = $directorio . $nuevoNombre;
+                        $rutaDestino = $directorio . $nuevoNombre.$tipoArchivo; // Guardamos con su extensión original
 
                         if (move_uploaded_file($tmpName, $rutaDestino)) {
                             // Insertar ruta en BD
@@ -136,18 +171,18 @@ include_once 'conn.php';
     // Acción para cargar los activos
     if ($accion == 'verActivos') {
         $sqlSelect = "SELECT 
-    a.id, ta.nombre as tipo_activo, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno, 
-    u.nombre AS usuario, n.nombre AS nave, a.cpu_info, a.monitor_info, a.cantidad, a.moi, 
-    a.costo, a.depreciacion, a.remanente, a.observaciones, a.created_at, a.ubicacion
-FROM activos a
-LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
-LEFT JOIN mess_rrhh.usuarios u ON (
-    (a.id_tipo_activo = 1 AND a.id_usuario = u.noEmpleado) OR 
-    (a.id_tipo_activo != 1 AND a.id_usuario = u.id_usuario)
-)
-LEFT JOIN cat_naves n ON a.id_nave = n.id
-WHERE a.estatus = 1
-ORDER BY a.id DESC";
+                        a.id, ta.nombre as tipo_activo, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno, 
+                        u.nombre AS usuario, n.nombre AS nave, a.cpu_info, a.monitor_info, a.cantidad, a.moi, 
+                        a.costo, a.depreciacion, a.remanente, a.observaciones, a.fecha_adquisicion, a.ubicacion
+                    FROM activos a
+                    LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
+                    LEFT JOIN mess_rrhh.usuarios u ON (
+                        (a.id_tipo_activo = 1 AND a.id_usuario = u.noEmpleado) OR 
+                        (a.id_tipo_activo != 1 AND a.id_usuario = u.id_usuario)
+                    )
+                    LEFT JOIN cat_naves n ON a.id_nave = n.id
+                    WHERE a.estatus = 1
+                    ORDER BY a.id DESC";
         
         $result = $conn->query($sqlSelect);
         $activos = array();
@@ -188,8 +223,11 @@ ORDER BY a.id DESC";
                         a.depreciacion, 
                         a.remanente, 
                         a.observaciones, 
-                        a.created_at,
-                        a.es_accesorio 
+                        a.fecha_adquisicion,
+                        a.es_accesorio, 
+                        a.region as id_region,
+                        a.id_usuario, 
+                        a.id_nave, a.id_tipo_activo
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
                     LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.noEmpleado
@@ -267,30 +305,39 @@ ORDER BY a.id DESC";
         }
     }
 
-    if ($accion == 'guardarEdicion') {
+if ($accion == 'guardarEdicion') {
         
-        // 1. Recolección de datos
-        $id             = $_POST['id'];
-        $id_tipo_activo = $_POST['id_tipo_activo'];
-        $descripcion    = $_POST['descripcion'];
-        $marca          = $_POST['marca'];
-        $modelo         = $_POST['modelo'];
-        $no_serie       = $_POST['no_serie'];
-        $id_interno     = $_POST['id_interno'];
+        // 1. Recolección de datos (con manejo de nulos por seguridad)
+        $id             = $_POST['id'] ?? 0;
+        $id_tipo_activo = $_POST['editTipoActivo'] ?? 0;
+        $descripcion    = $_POST['descripcion'] ?? '';
+        $marca          = $_POST['marca'] ?? '';
+        $modelo         = $_POST['modelo'] ?? '';
+        $no_serie       = $_POST['no_serie'] ?? '';
+        $id_interno     = $_POST['id_interno'] ?? '';
         
         // Checkbox: Si viene post, es 1, si no, es 0
         $es_accesorio   = isset($_POST['es_accesorio']) ? 1 : 0; 
         
-        $cpu_info       = $_POST['cpu_info'] ?? ''; // Operador ?? para evitar error si viene vacío
+        $cpu_info       = $_POST['cpu_info'] ?? ''; 
         $monitor_info   = $_POST['monitor_info'] ?? '';
         
-        $id_nave        = $_POST['id_nave'];
-        $id_usuario     = $_POST['id_usuario']; // Asegúrate de recibir el ID numérico
+        $id_nave        = $_POST['id_nave'] ?? 0;
+        $id_usuario     = $_POST['editSlcResponsable'] ?? 0;
         
-        $moi            = $_POST['moi'];
-        $depreciacion   = $_POST['depreciacion'];
-        $remanente      = $_POST['remanente'];
-        $observaciones  = $_POST['observaciones'];
+        $moi            = $_POST['moi'] ?? 0;
+        $depreciacion   = $_POST['depreciacion'] ?? 0;
+        $remanente      = $_POST['remanente'] ?? 0;
+        $observaciones  = $_POST['observaciones'] ?? '';
+
+        $fechaAdquisicion = $_POST['editFechaAdquisicion'] ?? null;
+        $region         = $_POST['selectRegion'] ?? null; 
+
+        // Validar que tengamos un ID válido para actualizar
+        if ($id == 0) {
+            echo json_encode(['status' => 'error', 'message' => 'No se recibió un ID válido para actualizar.']);
+            exit;
+        }
 
         // 2. Consulta SQL UPDATE (Preparada)
         $sql = "UPDATE activos SET 
@@ -308,33 +355,39 @@ ORDER BY a.id DESC";
                     moi = ?,
                     depreciacion = ?,
                     remanente = ?,
-                    observaciones = ?
+                    observaciones = ?,
+                    fecha_adquisicion = ?,
+                    region = ?
                 WHERE id = ?";
 
         if ($stmt = $conn->prepare($sql)) {
-            // Tipos de datos: i=integer, s=string, d=decimal (double)
-            // Ajusta según tu BD exacta. Aquí asumo decimales como 'd' o 's'
-            $stmt->bind_param("iisssssssiidddsi", 
-                $id_tipo_activo, 
-                $es_accesorio,
-                $descripcion,
-                $marca,
-                $modelo,
-                $no_serie,
-                $id_interno,
-                $cpu_info,
-                $monitor_info,
-                $id_nave,
-                $id_usuario,
-                $moi,
-                $depreciacion,
-                $remanente,
-                $observaciones,
-                $id // El ID va al final por el WHERE
+            
+            // CORREGIDO: 18 letras exactas para 18 variables
+            // i=int, s=string, d=double (decimales)
+            // Asumo que 'region' es un ID numérico (i). Si guardas texto, cambia la penúltima 'i' por 's'.
+            $stmt->bind_param("iisssssssiidddssii", 
+                $id_tipo_activo,    // i
+                $es_accesorio,      // i
+                $descripcion,       // s
+                $marca,             // s
+                $modelo,            // s
+                $no_serie,          // s
+                $id_interno,        // s
+                $cpu_info,          // s
+                $monitor_info,      // s
+                $id_nave,           // i
+                $id_usuario,        // i
+                $moi,               // d
+                $depreciacion,      // d
+                $remanente,         // d
+                $observaciones,     // s
+                $fechaAdquisicion,  // s 
+                $region,            // i 
+                $id                 // i (El ID va al final por el WHERE)
             );
 
             if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Activo actualizado']);
+                echo json_encode(['status' => 'success', 'message' => 'Activo actualizado correctamente.']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Error SQL: ' . $stmt->error]);
             }
@@ -403,6 +456,136 @@ ORDER BY a.id DESC";
         }
         exit;
     }
+
+    if($accion == 'getFotos') {
+        $idActivo = isset($_POST['idActivo']) ? $_POST['idActivo'] : 0;
+
+        $sqlFotos = "SELECT id, ruta_foto FROM fotos_activos WHERE id_activo = ?";
+        
+        if ($stmt = $conn->prepare($sqlFotos)) {
+            $stmt->bind_param("i", $idActivo);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $fotos = array();
+
+            while ($row = $result->fetch_assoc()) {
+                $fotos[] = $row;
+            }
+
+            // Devolver JSON
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'success', 'fotos' => $fotos]);
+            $stmt->close();
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error en la consulta']);
+        }
+        exit;
+    }
+    // Acción para eliminar fotos
+    if($accion == 'eliminarFoto') {
+        $idFoto = isset($_POST['idFoto']) ? $_POST['idFoto'] : 0;
+
+        // Primero obtenemos la ruta de la foto para eliminar el archivo físico
+        $sqlGetFoto = "SELECT ruta_foto FROM fotos_activos WHERE id = ?";
+        if ($stmtGet = $conn->prepare($sqlGetFoto)) {
+            $stmtGet->bind_param("i", $idFoto);
+            $stmtGet->execute();
+            $result = $stmtGet->get_result();
+
+            if ($row = $result->fetch_assoc()) {
+                $rutaFoto = $row['ruta_foto'];
+
+                // Eliminamos el archivo físico
+                if (file_exists($rutaFoto)) {
+                    unlink($rutaFoto);
+                }
+
+                // Luego eliminamos el registro de la base de datos
+                $sqlDelete = "DELETE FROM fotos_activos WHERE id = ?";
+                if ($stmtDelete = $conn->prepare($sqlDelete)) {
+                    $stmtDelete->bind_param("i", $idFoto);
+                    if ($stmtDelete->execute()) {
+                        echo json_encode(['status' => 'success', 'message' => 'Foto eliminada']);
+                    } else {
+                        echo json_encode(['status' => 'error', 'message' => 'Error al eliminar de BD']);
+                    }
+                    $stmtDelete->close();
+                } else {
+                    echo json_encode(['status' => 'error', 'message' => 'Error en consulta de eliminación']);
+                }
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Foto no encontrada']);
+            }
+            $stmtGet->close();
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error en consulta para obtener foto']);
+        }
+        exit;
+    }
+
+    //subir fotos para activo editado
+// subir fotos para activo editado
+    if($accion == 'subirFotos') {
+        
+        // 1. Validar que vengan los datos esperados
+        if (!isset($_FILES['fotos']) || !isset($_POST['idActivo'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Faltan datos para subir las fotos']);
+            exit;
+        }
+
+        $fotos = $_FILES['fotos'];
+        $idActivo = (int) $_POST['idActivo']; // Forzamos a entero por seguridad
+        $totalArchivos = count($fotos['name']);
+        
+        $fotosSubidasExito = 0; // Contador para saber si todo salió bien
+
+        $directorio = 'imgActivos/';
+        if (!file_exists($directorio)) {
+            mkdir($directorio, 0777, true);
+        }
+        
+        // Extensiones permitidas (Seguridad)
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        for ($i = 0; $i < $totalArchivos; $i++) {
+            if ($fotos['error'][$i] === UPLOAD_ERR_OK && !empty($fotos['name'][$i])) {
+                
+                $nombreOriginal = $fotos['name'][$i];
+                $tmpName        = $fotos['tmp_name'][$i];
+                
+                // Extraer la extensión real del archivo (ej: "jpg")
+                $extension = strtolower(pathinfo($nombreOriginal, PATHINFO_EXTENSION));
+
+                // Validar que sea una imagen
+                if (in_array($extension, $extensionesPermitidas)) {
+                    
+                    // Crear el nuevo nombre agregando el punto y la extensión CORRECTA
+                    $nuevoNombre = 'activo_' . $idActivo . '_' . time() . '_' . $i . '.' . $extension;
+                    $rutaDestino = $directorio . $nuevoNombre;
+
+                    if (move_uploaded_file($tmpName, $rutaDestino)) {
+                        $sqlFoto = "INSERT INTO fotos_activos(id_activo, ruta_foto) VALUES (?, ?)";
+                        $stmtFoto = $conn->prepare($sqlFoto);
+                        $stmtFoto->bind_param("is", $idActivo, $rutaDestino);
+                        
+                        if($stmtFoto->execute()) {
+                            $fotosSubidasExito++; // Sumamos un éxito
+                        }
+                        $stmtFoto->close();
+                    }
+                }
+            }
+        }
+
+        // 3. Responder según el resultado
+        if ($fotosSubidasExito > 0) {
+            echo json_encode(['status' => 'success', 'message' => "$fotosSubidasExito fotos subidas correctamente"]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No se pudo subir ninguna foto válida. Verifique el formato.']);
+        }
+        exit;
+    }
+
 
 $conn->close();
 

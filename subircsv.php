@@ -22,8 +22,7 @@ if (($handle = fopen($archivo, "r")) !== FALSE) {
                 folio, id_tipo_activo, descripcion, marca, modelo, 
                 no_serie, id_interno, id_usuario, nombre_usuario, id_nave, 
                 ubicacion, cpu_info, monitor_info, cantidad, moi, 
-                costo, depreciacion, remanente, observaciones, created_at, 
-                es_accesorio, estatus
+                costo, depreciacion, remanente, observaciones, fecha_adquisicion, es_accesorio, estatus                
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $pdo->prepare($sql);

@@ -157,7 +157,7 @@
                                             <thead class="bg-light">
                                                 <tr>
                                                     <th>Descripción</th>
-                                                    <th>Fecha Registro</th>
+                                                    <th>Fecha adquisición</th>
                                                     <th>Estatus</th>
                                                 </tr>
                                             </thead>
@@ -279,7 +279,7 @@
                             listaHtml += `
                                 <tr>
                                     <td>${item.descripcion_completa}</td>
-                                    <td>${item.created_at}</td>
+                                    <td>${item.fecha_adquisicion}</td>
                                     <td><span class="badge bg-success text-white">Activo</span></td>
                                 </tr>
                             `;

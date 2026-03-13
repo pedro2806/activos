@@ -49,7 +49,7 @@ if ($accion == 'nuevoActivo') {
         exit;
     }
 
-    $sqlInsert = "INSERT INTO activos(id_tipo_activo, descripcion, marca, modelo, no_serie, id_interno, id_usuario, id_nave, cpu_info, monitor_info, cantidad, moi, costo, depreciacion, remanente, observaciones, created_at, es_accesorio, estatus, ubicacion)
+    $sqlInsert = "INSERT INTO activos(id_tipo_activo, descripcion, marca, modelo, no_serie, id_interno, id_usuario, id_nave, cpu_info, monitor_info, cantidad, moi, costo, depreciacion, remanente, observaciones, fecha_adquisicion, es_accesorio, estatus, ubicacion)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)";
 
     $stmt = $conn->prepare($sqlInsert);
