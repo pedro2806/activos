@@ -395,12 +395,15 @@
                     $('#editDepreciacion').val(act.depreciacion);
                     $('#editRemanente').val(act.remanente);
                     $('#editObservaciones').val(act.observaciones);
-                    
-                    // Llenar Selects (Deben existir los options previamente)
-                    // Nota: Si usas catálogos dinámicos, asegúrate de que carguen antes de hacer esto
-                    $('#editTipoActivo').val(act.id_tipo_activo || 1).trigger('change'); // Trigger para mostrar/ocultar campos
+                                        
+                    $('#editTipoActivo').val(act.id_tipo_activo || 1).trigger('change');
                     $('#editNave').val(act.id_nave);
-                    $('#editUsuario').val(act.id_usuario); // OJO: Tu consulta SQL debe devolver id_usuario, no solo el nombre
+                    
+                    var opcionUsuario = new Option(act.usuario, act.id_usuario, true, true);                    
+                    $('#editSlcResponsable').append(opcionUsuario).trigger('change');
+
+                    $('#editSelectRegion').val(act.id_region); 
+                    $('#editFechaAdquisicion').val(act.fecha_adquisicion);
 
                     // Llenar Checkbox
                     $('#editEsAccesorio').prop('checked', act.es_accesorio == 1);
@@ -445,3 +448,119 @@
             }
         });
     }
+
+    // FUNCION PARA CARGAR FOTOS EXISTENTES EN EL EDITAR ACTIVO
+    function cargarFotosExistentes(idActivo) {
+        $.ajax({
+            url: 'acciones_activos.php',
+            method: 'POST',
+            dataType: 'json',
+            data: { opcion: 'getFotos', idActivo },
+            success: function(data) {
+                if(data.status === 'success') {
+                    var contenedor = $('#fotosExistentes');
+                    contenedor.empty(); // Limpiar fotos anteriores
+                    data.fotos.forEach(function(foto) {
+                        var fotoDiv = $(`
+                            <div class="position-relative d-inline-block m-1">
+                                <img src="${foto.ruta_foto}" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" title="Eliminar Foto" onclick="eliminarFoto(${foto.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>                            
+                        `);
+                        contenedor.append(fotoDiv);
+                    });
+                } else {
+                    $('#fotosExistentes').html('<p>No hay fotos disponibles.</p>');
+                }   
+            },
+            error: function() {
+                $('#fotosExistentes').html('<p>Error al cargar las fotos.</p>');
+            }
+        });
+    }
+
+    // FUNCION PARA ELIMINAR FOTO
+    function eliminarFoto(idFoto) {
+        Swal.fire({
+            title: '¿Eliminar esta foto?',
+            text: "¡Esta acción no se puede deshacer!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar', 
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: 'acciones_activos.php',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { opcion: 'eliminarFoto', idFoto },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire('¡Eliminada!', 'La foto ha sido eliminada.', 'success');
+                            // Recargar fotos después de eliminar
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const idActivo = urlParams.get('id');
+                            cargarFotosExistentes(idActivo);
+                        } else {
+                            Swal.fire('Error', response.message || 'No se pudo eliminar la foto', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Hubo un problema de conexión', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+// FUNCION PARA SUBIR FOTOS EN EL EDITAR ACTIVO
+function subirFotos() {    
+    var inputFotos = document.getElementById('inputFotos');
+    if (inputFotos.files.length === 0) {
+        Swal.fire('Atención', 'Por favor, selecciona al menos una foto antes de subir.', 'warning');
+        return;
+    }
+    
+    var formData = new FormData();
+
+    //Recorrer los archivos seleccionados y agregarlos al FormData    
+    for (var i = 0; i < inputFotos.files.length; i++) {
+        formData.append('fotos[]', inputFotos.files[i]);
+    }
+
+    // 5. Agregar los parámetros extra que necesita tu backend
+    formData.append('opcion', 'subirFotos');
+    
+    // Obtener ID del activo de la URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var idActivo = urlParams.get('id');
+    formData.append('idActivo', idActivo);
+
+    // 6. Enviar la petición AJAX
+    $.ajax({
+        url: 'acciones_activos.php',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(data) {
+            if (data.status === 'success') {
+                Swal.fire('¡Fotos subidas!', 'Las fotos han sido subidas exitosamente.', 'success');
+                cargarFotosExistentes(idActivo); // Recargar fotos para mostrar las nuevas
+                $('#inputFotos').val(''); // Limpiar el input de archivos
+            } else {
+                Swal.fire('Error', data.message || 'No se pudieron subir las fotos.', 'error');
+            }
+        },
+        error: function() {
+            Swal.fire('Error de conexión', 'Hubo un problema al comunicarse con el servidor.', 'error');
+        }
+    });
+}
+    

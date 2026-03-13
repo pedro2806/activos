@@ -45,7 +45,7 @@ while($row = $resRegion->fetch_assoc()) {
 }
 
 // 4. TABLA RÁPIDA: ÚLTIMOS 5 INGRESOS
-$sqlRecientes = "SELECT CONCAT(descripcion, ' - ', marca, ' - ', modelo) as descripcion_completa, created_at FROM activos WHERE estatus = 1 ORDER BY id DESC LIMIT 5";
+$sqlRecientes = "SELECT CONCAT(descripcion, ' - ', marca, ' - ', modelo) as descripcion_completa, fecha_adquisicion FROM activos WHERE estatus = 1 ORDER BY id DESC LIMIT 5";
 $resRecientes = $conn->query($sqlRecientes);
 $recientes = [];
 while($row = $resRecientes->fetch_assoc()) {

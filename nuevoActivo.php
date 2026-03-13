@@ -76,14 +76,16 @@
                                         </div>
 
                                         <div class="row">
-                                            <div class="col-12">
+                                            <div class="col-4">
+                                                <label class="form-label">Fecha de Adquisición <span class="text-danger">*</span></label>
+                                                <input type="date" class="form-control" id="fecha_adquisicion" name="fecha_adquisicion" required>
+                                            </div>
+                                            <div class="col-8">
                                                 <label class="form-label">Descripción del Activo <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" id="descripcion" name="descripcion" placeholder="Ej. LAPTOP, ESCRITORIO EN L, MONITOR 24 PULGADAS" required>
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
-
                                 <div class="card shadow-sm mb-2">
                                     <div class="card-body">
                                         <h6 class="section-title">2. Datos de Identificación</h6>
@@ -126,7 +128,7 @@
                                     <div class="card-body">
                                         <h6 class="section-title">3. Ubicación y Asignación</h6>
                                         <div class="row">
-                                            <div style="display: none;">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Región</label>
                                                 <select class="form-select" id="selectRegion" name="selectRegion">
                                                     <option value="">Seleccione...</option>                                                                                                        
@@ -139,13 +141,13 @@
                                                     <option value="1">SFG</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Ubicación</label>
                                                 <input type="text" class="form-control" name="ubicacion" id="ubicacion" placeholder="Ej. Estante, Bodega...">
                                             </div>
-                                            <div class="col-md-5">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Usuario Responsable</label>
-                                                <select class="form-select" id="slcRespoonsable" name="slcRespoonsable">
+                                                <select class="form-select" id="slcResponsable" name="slcResponsable">
                                                     <option value="">Seleccione...</option>
                                                 </select>
                                             </div>
@@ -332,7 +334,7 @@
         verificarAcceso();
         conjunto_computadora();
         
-        getEmpleados('#slcRespoonsable');
+        getEmpleados('#slcResponsable');
         getRegiones('#selectRegion');
     });
 
