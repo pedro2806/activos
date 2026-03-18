@@ -137,7 +137,7 @@
                                             <div class="col-md-3">
                                                 <label class="form-label">Nave / Planta</label>
                                                 <select class="form-select" id="selectNave" name="selectNave">
-                                                    <option selected disabled>Seleccione Región primero</option>
+                                                    <option selected disabled>Seleccione...</option>
                                                     <option value="1">SFG</option>
                                                 </select>
                                             </div>

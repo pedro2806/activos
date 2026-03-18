@@ -114,6 +114,8 @@
                         }
                         
                         var fila = [
+                            activo.fecha_registro,
+                            activo.fecha_adquisicion,                            
                             badgeTipo,
                             activo.descripcion,
                             activo.marca + ' / ' + activo.modelo,                            

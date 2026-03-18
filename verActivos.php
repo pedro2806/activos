@@ -57,6 +57,8 @@
                             <table class="table table-hover" id="tablaActivos" name="tablaActivos">
                                 <thead class=" table-primary">
                                     <tr class="text-secondary text-small">
+                                        <th scope="col">Fecha de Registro</th>
+                                        <th scope="col">Fecha de Adquisición</th>
                                         <th scope="col">Tipo</th>
                                         <th scope="col">Descripción</th>
                                         <th scope="col">Marca / Modelo</th>
