@@ -173,7 +173,7 @@ include_once 'conn.php';
         $sqlSelect = "SELECT 
                         a.id, ta.nombre as tipo_activo, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno, 
                         u.nombre AS usuario, n.nombre AS nave, a.cpu_info, a.monitor_info, a.cantidad, a.moi, 
-                        a.costo, a.depreciacion, a.remanente, a.observaciones, a.fecha_adquisicion, a.ubicacion
+                        a.costo, a.depreciacion, a.remanente, a.observaciones, a.fecha_adquisicion, a.ubicacion, a.fecha_registro
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
                     LEFT JOIN mess_rrhh.usuarios u ON (
