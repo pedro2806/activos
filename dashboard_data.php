@@ -110,13 +110,15 @@ while($row = $resAlertas->fetch_assoc()) {
 }
 
 // G. BITÁCORA DE MOVIMIENTOS (Últimos 100 registros)
-$sqlLog = "SELECT 
-            l.accion, 
+$sqlLog = "SELECT      l.accion, 
             l.detalles, 
             l.fecha_registro, 
-            COALESCE(a.descripcion, 'Activo no encontrado') as activo_desc
-        FROM log_activos l
+            COALESCE(CONCAT(ta.nombre, ' - ', a.descripcion, ' - ', a.marca), 'Activo no encontrado') as activo_desc,
+            u.nombre
+            FROM log_activos l
+            INNER JOIN mess_rrhh.usuarios u ON l.id_usuario = u.noEmpleado
             LEFT JOIN activos a ON l.id_activo = a.id
+            LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
             ORDER BY l.fecha_registro DESC 
             LIMIT 100";
 

@@ -18,6 +18,8 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css" rel="stylesheet">
 
     <style>
         /* Estilos personalizados para KPIs */
@@ -307,7 +309,7 @@
                 </div>
                 <div class="modal-body bg-light">
                     <p class="small text-muted mb-3">
-                        La siguiente lista muestra los activos que han perdido <strong>más del 85% de su valor original</strong> (remanente actual del 15% o menor). Financieramente, su valor es mínimo y representan un riesgo de obsolescencia, por lo que se requiere su reemplazo.
+                        La siguiente lista muestra los activos que han perdido <strong>más del 85% de su valor original</strong> (remanente actual del 15% o menor).
                     </p>
                     <div class="table-responsive bg-white shadow-sm rounded border">
                         <table class="table table-hover table-sm text-center mb-0" id="tablaExportarAlertas">
@@ -346,13 +348,14 @@
                 </div>
                 <div class="modal-body bg-light p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover table-sm text-center mb-0" style="font-size: 0.85rem;">
+                        <table id="tablaBitacoraI" class="table table-hover table-sm text-center mb-0" style="font-size: 0.85rem;">
                             <thead class="bg-dark text-white sticky-top">
                                 <tr>
-                                    <th width="15%">Fecha y Hora</th>
+                                    <th width="15%">Usuario Log</th>
+                                    <th width="10%">Fecha y Hora</th>
                                     <th width="15%">Acción</th>
-                                    <th width="25%">Activo</th>
-                                    <th width="45%">Detalles</th>
+                                    <th width="30%">Activo</th>
+                                    <th width="30%">Detalles</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaBitacora">
@@ -366,13 +369,16 @@
             </div>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>    
     <script src="js/sb-admin-2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 
     <script type="text/javascript">
         
@@ -490,10 +496,11 @@
 
                             bitacoraHtml += `
                                 <tr class="align-middle">
+                                    <td class="text-left text-muted">${row.nombre}</td>
                                     <td class="text-muted font-weight-bold">${row.fecha_registro}</td>
                                     <td><span class="badge ${badgeColor}">${row.accion}</span></td>
                                     <td class="font-weight-bold text-dark">${row.activo_desc}</td>
-                                    <td class="text-left text-muted">${row.detalles}</td>
+                                    <td class="text-left text-muted">${row.detalles}</td>                                    
                                 </tr>
                             `;
                         });
@@ -501,6 +508,21 @@
                         bitacoraHtml = '<tr><td colspan="4" class="text-center text-muted py-4">No hay movimientos registrados aún.</td></tr>';
                     }
                     $('#tablaBitacora').html(bitacoraHtml);
+
+                    if(data.bitacora && data.bitacora.length > 0) {
+                        $('#tablaBitacoraI').DataTable({
+                            pageLength: 5,
+                            lengthChange: false,
+                            ordering: true,
+                            info: true,
+                            search: false,
+                            language: {
+                                url: "https://cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+                            }
+                        });
+                    } else {
+                        $('#tablaBitacora').html('<tr><td colspan="4" class="text-center text-muted py-4">No hay movimientos registrados aún.</td></tr>');
+                    }
 
 
                     
