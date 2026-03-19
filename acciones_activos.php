@@ -24,6 +24,19 @@ include_once 'conn.php';
     $fechaAdquisicion = isset($_POST['fecha_adquisicion']) ? $_POST['fecha_adquisicion'] : null;
     $fotos = isset($_POST['fotos']) ? $_POST['fotos'] : '';
 
+    $noEmpleado = isset($_COOKIE['noEmpleado']) ? intval($_COOKIE['noEmpleado']) : 0;
+
+
+    // Función para registrar movimientos en el Log
+    function registrarLog($conn, $idActivo, $idUsuario, $accion, $detalles) {
+        $sqlLog = "INSERT INTO log_activos (id_activo, id_usuario, accion, detalles) VALUES (?, ?, ?, ?)";
+        if ($stmtLog = $conn->prepare($sqlLog)) {
+            $stmtLog->bind_param("iiss", $idActivo, $idUsuario, $accion, $detalles);
+            $stmtLog->execute();
+            $stmtLog->close();
+        }
+    }
+
     if ($accion == 'nuevoActivo') {
         
         // 1. RECIBIR VARIABLES (Usamos $_POST directo porque viene de FormData)        
@@ -33,7 +46,7 @@ include_once 'conn.php';
         $modelo         = $_POST['modelo'] ?? '';
         $noSerie        = $_POST['no_serie'] ?? '';
         $idInterno      = $_POST['id_interno'] ?? '';
-        $usuario        = $_POST['usuario'] ?? null; // Puede ser null si no asignan
+        $usuario        = $_POST['slcResponsable'] ?? null;
         $nave           = $_POST['selectNave'] ?? null;
         $cpuInfo        = $_POST['cpuInfo'] ?? '';
         $monitorInfo    = $_POST['monitorInfo'] ?? '';
@@ -42,14 +55,14 @@ include_once 'conn.php';
         $depreciacion   = $_POST['depreciacion'] ?? 0;
         $remanente      = $_POST['remanente'] ?? 0;
         $observaciones  = $_POST['observaciones'] ?? '';
-        $EsAccesorio    = $_POST['EsAccesorio'] ?? 0; // Viene como '1' o '0' desde JS
+        $EsAccesorio    = $_POST['EsAccesorio'] ?? 0;
         $ubicacion      = $_POST['ubicacion'] ?? '';
         $region         = $_POST['selectRegion'] ?? ''; 
         $fechaAdquisicion = $_POST['fecha_adquisicion'] ?? null;                
         $cantidad = $_POST['cantidad'] ?? 1; // Asumimos que si no viene, es 1
         $estatus = 1; // Activo
 
-        // Validar datos obligatorios (Corregido para evaluar todos los mencionados)
+        // Validar datos obligatorios
         if (empty($tipoActivo) || empty($descripcion) || empty($marca) || empty($nave)) {   
             $response = array(
                 'status' => 'error', 
@@ -60,28 +73,25 @@ include_once 'conn.php';
             exit;
         }
 
-        // 2. INSERT SEGURO (Prepared Statement)
-        // Corregido: 21 columnas + 1 NOW() = 21 signos '?'
+        // 2. INSERT SEGURO (Prepared Statement)        
         $sqlInsert = "INSERT INTO activos(
                             id_tipo_activo, descripcion, marca, modelo, no_serie, 
                             id_interno, id_usuario, id_nave, cpu_info, monitor_info, 
                             cantidad, moi, costo, depreciacion, remanente, 
                             observaciones, es_accesorio, estatus, ubicacion, region, 
-                            fecha_adquisicion, fecha_registro
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                            fecha_adquisicion, fecha_registro, registrado_por
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)";
 
         $stmt = $conn->prepare($sqlInsert);
         
         if (!$stmt) {
-            // Esto te ayudará a ver si hay un error en la sintaxis SQL antes de ejecutar
+    
             echo json_encode(['status' => 'error', 'message' => 'Error en prepare: ' . $conn->error]);
             exit;
-        }
+        }        
 
-        // Corregido: Cadena de 21 letras que coincide exactamente con las 21 variables
-        // i=integer, s=string, d=double(decimal). 
-        // Asumo que 'region' es un ID (i). Si es texto, cambia esa 'i' por 's'.
-        $stmt->bind_param("isssssiissiddddsiisis", 
+            
+        $stmt->bind_param("isssssiissiddddsiisisi", 
             $tipoActivo, 
             $descripcion, 
             $marca, 
@@ -102,12 +112,18 @@ include_once 'conn.php';
             $estatus, 
             $ubicacion, 
             $region, 
-            $fechaAdquisicion
+            $fechaAdquisicion,
+            $noEmpleado 
         );
 
         if ($stmt->execute()) {
-            $ultimoId = $conn->insert_id; // Obtenemos ID para las fotos
+            $ultimoId = $conn->insert_id; 
             $errorFotos = false;
+
+            // --- REGISTRAR EN EL LOG ---
+            $idNuevoActivo = $conn->insert_id;
+            $idUsuarioAccion = $noEmpleado;                        
+            registrarLog($conn, $idNuevoActivo, $idUsuarioAccion, 'CREADO', "Se dio de alta un nuevo activo en el sistema.");
 
             // 3. MANEJO DE FOTOS 
             if (isset($_FILES['fotos'])) {
@@ -139,7 +155,13 @@ include_once 'conn.php';
                             $sqlFoto = "INSERT INTO fotos_activos(id_activo, ruta_foto) VALUES (?, ?)";
                             $stmtFoto = $conn->prepare($sqlFoto);
                             $stmtFoto->bind_param("is", $ultimoId, $rutaDestino);
-                            $stmtFoto->execute();
+                            if($stmtFoto->execute()) {
+                                $fotosSubidasExito++; 
+                                
+                                // --- REGISTRAR EN EL LOG ---
+                                $idUsuarioAccion = $noEmpleado;
+                                registrarLog($conn, $ultimoId, $idUsuarioAccion, 'FOTO_AGREGADA', "Se subió la imagen: $nuevoNombre");
+                            }
                             $stmtFoto->close();
                         } else {
                             $errorFotos = true;
@@ -387,6 +409,11 @@ include_once 'conn.php';
             );
 
             if ($stmt->execute()) {
+                $idUsuarioAccion = $noEmpleado;
+    
+                // --- REGISTRAR EN EL LOG ---
+                registrarLog($conn, $id, $idUsuarioAccion, 'EDITADO', "Se actualizaron los datos generales del activo.");
+
                 echo json_encode(['status' => 'success', 'message' => 'Activo actualizado correctamente.']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Error SQL: ' . $stmt->error]);
@@ -505,6 +532,13 @@ include_once 'conn.php';
                 if ($stmtDelete = $conn->prepare($sqlDelete)) {
                     $stmtDelete->bind_param("i", $idFoto);
                     if ($stmtDelete->execute()) {
+                        // --- REGISTRAR EN EL LOG ---
+                        $idUsuarioAccion = $noEmpleado;
+                        //Obtener id de activo desde URL
+                        $nombreFoto = substr($rutaFoto, strrpos($rutaFoto, 'imgActivos/') + 11);
+                        $idActivo = isset($_POST['idActivo']) ? $_POST['idActivo'] : 0;
+                        registrarLog($conn, $idActivo, $idUsuarioAccion, 'FOTO_ELIMINADA', "Se eliminó imagen: $nombreFoto");                        
+
                         echo json_encode(['status' => 'success', 'message' => 'Foto eliminada']);
                     } else {
                         echo json_encode(['status' => 'error', 'message' => 'Error al eliminar de BD']);
@@ -591,6 +625,9 @@ include_once 'conn.php';
                         
                         if($stmtFoto->execute()) {
                             $fotosSubidasExito++; // Sumamos un éxito
+                            // --- REGISTRAR EN EL LOG ---
+                            $idUsuarioAccion = $noEmpleado;
+                            registrarLog($conn, $idActivo, $idUsuarioAccion, 'FOTO_AGREGADA', "Se subió la imagen: $nuevoNombre");
                         }
                         $stmtFoto->close();
                     }

@@ -74,6 +74,9 @@
                         <h1 class="h3 mb-0 text-gray-800">Resumen</h1>
                         
                         <div>
+                            <button class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm mr-2 text-white" data-bs-toggle="modal" data-bs-target="#modalBitacora">
+                                <i class="fas fa-history fa-sm text-white-50"></i> Ver Bitácora
+                            </button>
                             <button onclick="exportarActivosDirecto()" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm mr-2">
                                 <i class="fas fa-file-excel fa-sm text-white-50"></i> Exportar BD Completa
                             </button>
@@ -332,6 +335,38 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalBitacora" tabindex="-1" aria-labelledby="modalBitacoraLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title font-weight-bold" id="modalBitacoraLabel">
+                        <i class="fas fa-history mr-2"></i> Historial de Movimientos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm text-center mb-0" style="font-size: 0.85rem;">
+                            <thead class="bg-dark text-white sticky-top">
+                                <tr>
+                                    <th width="15%">Fecha y Hora</th>
+                                    <th width="15%">Acción</th>
+                                    <th width="25%">Activo</th>
+                                    <th width="45%">Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaBitacora">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
@@ -441,6 +476,31 @@
                         alertasHtml = '<tr><td colspan="5" class="text-center text-muted py-4">No hay equipos próximos a caducar</td></tr>';
                     }
                     $('#tablaAlertasRefresh').html(alertasHtml);
+
+                    // Llenar Bitácora de Movimientos ---
+                    let bitacoraHtml = '';
+                    if(data.bitacora && data.bitacora.length > 0) {
+                        data.bitacora.forEach(row => {
+                            // Asignar un color visual a la "etiqueta" según la acción
+                            let badgeColor = 'bg-secondary';
+                            if(row.accion === 'CREADO') badgeColor = 'bg-success';
+                            else if(row.accion === 'EDITADO') badgeColor = 'bg-primary';
+                            else if(row.accion === 'FOTO_AGREGADA') badgeColor = 'bg-info text-dark';
+                            else if(row.accion === 'FOTO_ELIMINADA') badgeColor = 'bg-danger';
+
+                            bitacoraHtml += `
+                                <tr class="align-middle">
+                                    <td class="text-muted font-weight-bold">${row.fecha_registro}</td>
+                                    <td><span class="badge ${badgeColor}">${row.accion}</span></td>
+                                    <td class="font-weight-bold text-dark">${row.activo_desc}</td>
+                                    <td class="text-left text-muted">${row.detalles}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        bitacoraHtml = '<tr><td colspan="4" class="text-center text-muted py-4">No hay movimientos registrados aún.</td></tr>';
+                    }
+                    $('#tablaBitacora').html(bitacoraHtml);
 
 
                     

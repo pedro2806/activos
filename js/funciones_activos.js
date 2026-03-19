@@ -500,7 +500,7 @@
                     url: 'acciones_activos.php',
                     method: 'POST',
                     dataType: 'json',
-                    data: { opcion: 'eliminarFoto', idFoto },
+                    data: { opcion: 'eliminarFoto', idFoto, idActivo: new URLSearchParams(window.location.search).get('id') },
                     success: function(response) {
                         if (response.status === 'success') {
                             Swal.fire('¡Eliminada!', 'La foto ha sido eliminada.', 'success');
@@ -521,48 +521,48 @@
     }
 
 // FUNCION PARA SUBIR FOTOS EN EL EDITAR ACTIVO
-function subirFotos() {    
-    var inputFotos = document.getElementById('inputFotos');
-    if (inputFotos.files.length === 0) {
-        Swal.fire('Atención', 'Por favor, selecciona al menos una foto antes de subir.', 'warning');
-        return;
-    }
-    
-    var formData = new FormData();
-
-    //Recorrer los archivos seleccionados y agregarlos al FormData    
-    for (var i = 0; i < inputFotos.files.length; i++) {
-        formData.append('fotos[]', inputFotos.files[i]);
-    }
-
-    // 5. Agregar los parámetros extra que necesita tu backend
-    formData.append('opcion', 'subirFotos');
-    
-    // Obtener ID del activo de la URL
-    var urlParams = new URLSearchParams(window.location.search);
-    var idActivo = urlParams.get('id');
-    formData.append('idActivo', idActivo);
-
-    // 6. Enviar la petición AJAX
-    $.ajax({
-        url: 'acciones_activos.php',
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-        success: function(data) {
-            if (data.status === 'success') {
-                Swal.fire('¡Fotos subidas!', 'Las fotos han sido subidas exitosamente.', 'success');
-                cargarFotosExistentes(idActivo); // Recargar fotos para mostrar las nuevas
-                $('#inputFotos').val(''); // Limpiar el input de archivos
-            } else {
-                Swal.fire('Error', data.message || 'No se pudieron subir las fotos.', 'error');
-            }
-        },
-        error: function() {
-            Swal.fire('Error de conexión', 'Hubo un problema al comunicarse con el servidor.', 'error');
+    function subirFotos() {    
+        var inputFotos = document.getElementById('inputFotos');
+        if (inputFotos.files.length === 0) {
+            Swal.fire('Atención', 'Por favor, selecciona al menos una foto antes de subir.', 'warning');
+            return;
         }
-    });
-}
-    
+        
+        var formData = new FormData();
+
+        //Recorrer los archivos seleccionados y agregarlos al FormData    
+        for (var i = 0; i < inputFotos.files.length; i++) {
+            formData.append('fotos[]', inputFotos.files[i]);
+        }
+
+        // 5. Agregar los parámetros extra que necesita tu backend
+        formData.append('opcion', 'subirFotos');
+        
+        // Obtener ID del activo de la URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var idActivo = urlParams.get('id');
+        formData.append('idActivo', idActivo);
+
+        // 6. Enviar la petición AJAX
+        $.ajax({
+            url: 'acciones_activos.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(data) {
+                if (data.status === 'success') {
+                    Swal.fire('¡Fotos subidas!', 'Las fotos han sido subidas exitosamente.', 'success');
+                    cargarFotosExistentes(idActivo); // Recargar fotos para mostrar las nuevas
+                    $('#inputFotos').val(''); // Limpiar el input de archivos
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudieron subir las fotos.', 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error de conexión', 'Hubo un problema al comunicarse con el servidor.', 'error');
+            }
+        });
+    }
+        

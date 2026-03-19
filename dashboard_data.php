@@ -109,6 +109,25 @@ while($row = $resAlertas->fetch_assoc()) {
     $alertas[] = $row;
 }
 
+// G. BITÁCORA DE MOVIMIENTOS (Últimos 100 registros)
+$sqlLog = "SELECT 
+            l.accion, 
+            l.detalles, 
+            l.fecha_registro, 
+            COALESCE(a.descripcion, 'Activo no encontrado') as activo_desc
+        FROM log_activos l
+            LEFT JOIN activos a ON l.id_activo = a.id
+            ORDER BY l.fecha_registro DESC 
+            LIMIT 100";
+
+$resLog = $conn->query($sqlLog);
+$bitacora = [];
+if($resLog){
+    while($row = $resLog->fetch_assoc()) {
+        $bitacora[] = $row;
+    }
+}
+
 // Devolver todo el paquete JSON limpio
 echo json_encode([
     'kpi' => $kpi,
@@ -116,6 +135,7 @@ echo json_encode([
     'chartRegion' => $dataRegion,
     'recientes' => $recientes,
     'resumen' => $resumenFinanciero,
-    'alertas' => $alertas
+    'alertas' => $alertas,
+    'bitacora' => $bitacora
 ]);
 ?>
