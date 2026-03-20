@@ -14,7 +14,7 @@ try {
 }
 
 // 2. Archivo
-$archivo = 'ActivosTI.csv';
+$archivo = 'Activos_DCM.csv';
 
 if (($handle = fopen($archivo, "r")) !== FALSE) {
     // SQL preparado
