@@ -40,24 +40,25 @@
                     include 'encabezado.php';
                 ?>
                 <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h3 class="text-primary fw-bold mb-0">Inventario de Activos</h3>
-                    </div>
-                    <a href="nuevoActivo" class="btn btn-primary">
-                        <i class="bi bi-plus-lg"></i> Nuevo Activo
+            <div class="container-fluid">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">Inventario de Activos</h1>
+                    <a href="nuevoActivo" class="btn btn-sm btn-success shadow-sm">
+                        <i class="fas fa-plus fa-sm text-white-50"></i> Nuevo Activo
                     </a>
                 </div>
 
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-0">
+                <!-- Tarjeta de la Tabla -->
+                <div class="card shadow mb-4 border-left-primary">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list mr-2"></i>Inventario de Activos</h6>                            
+                    </div>
+                    <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover" id="tablaActivos" name="tablaActivos">
-                                <thead class=" table-primary">
-                                    <tr class="text-secondary text-small">
-                                        <th scope="col">Fecha de Registro</th>
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <th scope="col">Registro</th>
                                         <th scope="col">Fecha de Adquisición</th>
                                         <th scope="col">Tipo</th>
                                         <th scope="col">Descripción</th>

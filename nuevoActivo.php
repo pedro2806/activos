@@ -48,7 +48,7 @@
                                         <h6 class="section-title">1. Clasificación</h6>
                                         
                                         <div class="row align-items-center mb-3">
-                                            <div class="col-md-5">
+                                            <div class="col-md-4">
                                                 <label class="form-label fw-bold">Tipo de Activo <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="selectTipoActivo" name="selectTipoActivo" required>
                                                     <option value="">Seleccione tipo...</option>
@@ -59,28 +59,37 @@
                                                 </select>
                                             </div>
 
-                                            <div class="col-md-5">
+                                            <div class="col-md-4 bg-light border-left-dark">
                                                 <div class="form-check form-switch mt-4">
                                                     <input class="form-check-input" type="checkbox" id="checkEsAccesorio" name="es_accesorio" value="0" onchange="conjunto_computadora()">
                                                     <label class="form-check-label" for="checkEsAccesorio">
                                                         ¿Va en conjunto con computadora?
-                                                        <small class="d-block text-muted" style="font-size: 0.75rem;">(Monitor extra, Docking, Teclado, etc.)</small>
+                                                        <small class="d-block text-muted" style="font-size: 0.6rem;">(Monitor extra, Docking, Teclado, etc.)</small>
                                                     </label>
                                                 </div>
                                             </div>
+                                            <div class="col-md-4 bg-light border-left-dark">
+                                                <div class="form-check form-switch mt-4">
+                                                    <input class="form-check-input" type="checkbox" id="checkEsPrestamo" name="es_prestamo" value="0" onchange="conjunto_computadora()">
+                                                    <label class="form-check-label" for="checkEsPrestamo">
+                                                        ¿Es activo para renta?
+                                                        <small class="d-block text-muted" style="font-size: 0.6rem;">(Renta a externos)</small>
+                                                    </label>
+                                                </div>
+                                            </div>                                            
                                             
-                                            <div class="col-md-2">
-                                                <label class="form-label">Cantidad</label>
-                                                <input type="number" class="form-control" id="cantidad" name="cantidad" value="1" min="1">
-                                            </div>
                                         </div>
 
                                         <div class="row">
-                                            <div class="col-4">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Cantidad</label>
+                                                <input type="number" class="form-control" id="cantidad" name="cantidad" value="1" min="1">
+                                            </div>
+                                            <div class="col-md-3">
                                                 <label class="form-label">Fecha de Adquisición <span class="text-danger">*</span></label>
                                                 <input type="date" class="form-control" id="fecha_adquisicion" name="fecha_adquisicion" required>
                                             </div>
-                                            <div class="col-8">
+                                            <div class="col-md-6">
                                                 <label class="form-label">Descripción del Activo <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" id="descripcion" name="descripcion" placeholder="Ej. LAPTOP, ESCRITORIO EN L, MONITOR 24 PULGADAS" required>
                                             </div>
