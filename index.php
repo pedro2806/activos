@@ -487,12 +487,18 @@
                     let bitacoraHtml = '';
                     if(data.bitacora && data.bitacora.length > 0) {
                         data.bitacora.forEach(row => {
-                            // Asignar un color visual a la "etiqueta" según la acción
+                            
                             let badgeColor = 'bg-secondary';
                             if(row.accion === 'CREADO') badgeColor = 'bg-success';
                             else if(row.accion === 'EDITADO') badgeColor = 'bg-primary';
                             else if(row.accion === 'FOTO_AGREGADA') badgeColor = 'bg-info text-dark';
                             else if(row.accion === 'FOTO_ELIMINADA') badgeColor = 'bg-danger';
+                            else if(row.accion === 'PRESTAMO_EDITADO') badgeColor = 'bg-dark';
+                            else if(row.accion === 'PRESTAMO_CREADO') badgeColor = 'bg-warning text-dark';
+                            else if(row.accion === 'PRESTAMO_FINALIZADO') badgeColor = 'bg-success';
+                            else if(row.accion === 'PRESTAMO_REGISTRADO') badgeColor = 'bg-primary';
+                            else if(row.accion === 'PRESTAMO_DEVUELTO') badgeColor = 'bg-info text-dark';
+                            else if(row.accion === 'ELIMINADO') badgeColor = 'bg-danger';
 
                             bitacoraHtml += `
                                 <tr class="align-middle">

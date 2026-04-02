@@ -33,35 +33,37 @@
 </div>
 <!-- Divider -->
 <hr class="sidebar-divider my-2 alert-light">
-<!-- Nav Item - Pages Collapse Menu -->
-<?php
-//81 203 8  usuarios norte
-//USUARIOS QUE PUEDEN REGISTRAR ACTIVIDADES
-/////$usuariosRegistran = array(212, 14, 42, 161, 403, 183, 521, 276, 26, 147, 189, 177, 45, 26, 525, 435, 489, 523, 298, 81, 203, 8, 278, 206, 123, 516);
-
-///if (in_array($_COOKIE['noEmpleado'], $usuariosRegistran)) {
-?>
-    <li class="nav-item">
-    <a class="nav-link" href="nuevoActivo">
-        <i class="fas fa-fw fa-check text-gray-400 mb-0"></i>
-        <span>Registrar activos</span>
-    </a>
-</li>
-<?php
-///}
-?>
 
 <li class="nav-item">
-    <a class="nav-link" href="verActivos">
-        <i class="fas fa-fw fa-list text-gray-400"></i>
-        <span>Ver Activos</span>
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseActivos">
+        <i class="fas fa-fw fa-list  text-gray-400"></i>
+        <span>Registro Activos</span>
     </a>
+    <div id="collapseActivos" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="nuevoActivo">Regisrar Activo</a>
+            <a class="collapse-item" href="verActivos">Ver Activos</a>
+        </div>
+    </div>
+</li>
+<hr class="sidebar-divider my-2 alert-light">
+<li class="nav-item" id="navRentas" name="navRentas">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRentas">
+        <i class="fas fa-fw fa-retweet  text-gray-400"></i>
+        <span>Renta/Prest Activos</span>
+    </a>
+    <div id="collapseRentas" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="rentaPrestamo">Nueva movimiento</a>
+            <a class="collapse-item" href="administrar_prestRenta">Administrar Prest/Renta</a>
+        </div>
+    </div>
 </li>
 
 <hr class="sidebar-divider my-0 alert-light">
 <li class = "nav-item">
     <a class = "nav-link" href = "#" data-toggle = "modal" data-target = "#logoutModalN">
-        <i class = "fas fa-sign-out-alt text-gray-100"></i>
+        <i class = "fas fa-sign-out-alt"></i>
         Salir
     </a>
 </li>
@@ -72,3 +74,27 @@
     <button class="rounded-circle border-0" id="sidebarToggle"></button> 
 </div>
 </ul>
+
+<script src="../loginMaster/funcionesGlobales.js"></script>
+<script>
+    async function verificarAccesoRentas() {
+        // 1. Agregamos await para esperar la respuesta
+        const respuesta = await validaOpciones('activos', 'rentas');
+        
+        // 2. Accedemos a la estructura correcta según tu PHP: respuesta.data[0].cuantos
+        const cuantos = (respuesta && respuesta.status === 'success') 
+                        ? parseInt(respuesta.data[0].cuantos) 
+                        : 0;
+alert(cuantos);
+        if (cuantos <= 0) {            
+            $('#navRentas').hide(); // Oculta el elemento si no tiene acceso            
+        }else {
+            $('#navRentas').show(); // Muestra el elemento si tiene acceso  
+
+        }
+    }
+
+    $(document).ready(function() {        
+        verificarAccesoRentas();        
+    });
+</script>

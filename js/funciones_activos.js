@@ -12,6 +12,10 @@
             // Lógica del Checkbox (FormData solo lo incluye si está checked, aquí forzamos 1 o 0)
             var isChecked = document.getElementById('checkEsAccesorio').checked;
             formData.set('es_accesorio', isChecked ? '1' : '0'); 
+            
+            var isChecked = document.getElementById('checkEsPrestamo').checked;
+            formData.set('es_prestamo', isChecked ? '1' : '0'); 
+
             // Nota: Usamos .set() para sobrescribir si el input ya existía en el form
 
             // 4. Enviar vía AJAX
@@ -96,10 +100,24 @@
                             badgeTipo = '<span class="badge bg-dark text-white">'+activo.tipo_activo+'</span>';
                         }
 
+                        let badgeTipoActivo = '';
+                        if(activo.prestamo == 1) {
+                            badgeTipoActivo = ' / <span class="badge bg-success">Préstamo/Renta</span>';
+                        } else {
+                            badgeTipoActivo = '';
+                        }
+
+                        let badgeEstatusPrestamo = '';
+                        if(activo.estatus_prestamo == 1) {
+                            badgeEstatusPrestamo = '<span class="badge bg-danger">En Préstamo / Renta</span>';
+                        } else {
+                            badgeEstatusPrestamo = '';
+                        }
+
                         let opciones = '<i class="fas fa-fw fa-eye"></i>';
                         if(permiso === 'Edita') {
                             opciones = `
-                                <div class="d-flex justify-content-center gap-2">
+                                <div class="d-flex justify-content-center gap-0">
                                     <button class="btn btn-sm btn-outline-primary" title="Ver Detalles" onclick="verDetallesActivo(${activo.id})">
                                         <i class="fas fa-fw fa-eye"></i> 
                                     </button>
@@ -116,14 +134,14 @@
                         var fila = [
                             activo.fecha_registro,
                             activo.fecha_adquisicion,                            
-                            badgeTipo,
+                            badgeTipo + badgeTipoActivo,
                             activo.descripcion,
                             activo.marca + ' / ' + activo.modelo,                            
                             `<span class="fw-bold">${activo.nave + ' / ' + activo.ubicacion }</span>`,
                             activo.usuario,
                             formatoDinero.format(activo.costo) + ' / ' +
                             `<span class="fw-bold text-success">${formatoDinero.format(activo.remanente)}</span>`,
-                            activo.observaciones,
+                            badgeEstatusPrestamo +' / ' + activo.observaciones,
                             opciones
                         ];
                         
@@ -409,6 +427,7 @@
 
                     // Llenar Checkbox
                     $('#editEsAccesorio').prop('checked', act.es_accesorio == 1);
+                    $('#editEsPrestamo').prop('checked', act.prestamo == 1);
 
                     // Llenar Técnicos
                     $('#editCpu').val(act.cpu_info);

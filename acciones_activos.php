@@ -48,19 +48,20 @@ include_once 'conn.php';
         $idInterno      = $_POST['id_interno'] ?? '';
         $usuario        = $_POST['slcResponsable'] ?? null;
         $nave           = $_POST['selectNave'] ?? null;
-        $cpuInfo        = $_POST['cpuInfo'] ?? '';
-        $monitorInfo    = $_POST['monitorInfo'] ?? '';
+        $cpuInfo        = $_POST['cpu_info'] ?? '';
+        $monitorInfo    = $_POST['monitor_info'] ?? '';
         $moi            = $_POST['moi'] ?? 0;
         $costo          = $_POST['costo'] ?? 0;
         $depreciacion   = $_POST['depreciacion'] ?? 0;
         $remanente      = $_POST['remanente'] ?? 0;
         $observaciones  = $_POST['observaciones'] ?? '';
-        $EsAccesorio    = $_POST['EsAccesorio'] ?? 0;
+        $EsAccesorio    = $_POST['es_accesorio'] ?? 0;
         $ubicacion      = $_POST['ubicacion'] ?? '';
         $region         = $_POST['selectRegion'] ?? ''; 
         $fechaAdquisicion = $_POST['fecha_adquisicion'] ?? null;                
         $cantidad = $_POST['cantidad'] ?? 1; // Asumimos que si no viene, es 1
         $estatus = 1; // Activo
+        $esPrestamo = $_POST['es_prestamo'] ?? 0;        
 
         // Validar datos obligatorios
         if (empty($tipoActivo) || empty($descripcion) || empty($marca) || empty($nave)) {   
@@ -79,8 +80,8 @@ include_once 'conn.php';
                             id_interno, id_usuario, id_nave, cpu_info, monitor_info, 
                             cantidad, moi, costo, depreciacion, remanente, 
                             observaciones, es_accesorio, estatus, ubicacion, region, 
-                            fecha_adquisicion, fecha_registro, registrado_por
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)";
+                            fecha_adquisicion, fecha_registro, registrado_por, prestamo
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?)";
 
         $stmt = $conn->prepare($sqlInsert);
         
@@ -91,7 +92,7 @@ include_once 'conn.php';
         }        
 
             
-        $stmt->bind_param("isssssiissiddddsiisisi", 
+        $stmt->bind_param("isssssiissiddddsiisisii", 
             $tipoActivo, 
             $descripcion, 
             $marca, 
@@ -113,7 +114,8 @@ include_once 'conn.php';
             $ubicacion, 
             $region, 
             $fechaAdquisicion,
-            $noEmpleado 
+            $noEmpleado,
+            $esPrestamo
         );
 
         if ($stmt->execute()) {
@@ -195,15 +197,16 @@ include_once 'conn.php';
         $sqlSelect = "SELECT 
                         a.id, ta.nombre as tipo_activo, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno, 
                         u.nombre AS usuario, n.nombre AS nave, a.cpu_info, a.monitor_info, a.cantidad, a.moi, 
-                        a.costo, a.depreciacion, a.remanente, a.observaciones, a.fecha_adquisicion, a.ubicacion, a.fecha_registro
+                        a.costo, a.depreciacion, a.remanente, a.observaciones, a.fecha_adquisicion, a.ubicacion, DATE_FORMAT(a.fecha_registro, '%Y-%m-%d') AS fecha_registro,
+                            a.es_accesorio, a.region, a.id_usuario, a.id_nave, a.id_tipo_activo, a.prestamo,
+                            (SELECT pa.estatus FROM prestamos_activos pa WHERE pa.id_activo = a.id AND pa.estatus = 1 LIMIT 1) AS estatus_prestamo
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
                     LEFT JOIN mess_rrhh.usuarios u ON (
                         (a.id_tipo_activo = 1 AND a.id_usuario = u.noEmpleado) OR 
                         (a.id_tipo_activo != 1 AND a.id_usuario = u.id_usuario)
                     )
-                    LEFT JOIN cat_naves n ON a.id_nave = n.id
-                    WHERE a.estatus = 1
+                    LEFT JOIN cat_naves n ON a.id_nave = n.id                                        
                     ORDER BY a.id DESC";
         
         $result = $conn->query($sqlSelect);
@@ -249,7 +252,7 @@ include_once 'conn.php';
                         a.es_accesorio, 
                         a.region as id_region,
                         a.id_usuario, 
-                        a.id_nave, a.id_tipo_activo
+                        a.id_nave, a.id_tipo_activo, a.prestamo
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
                     LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.noEmpleado
@@ -339,7 +342,8 @@ include_once 'conn.php';
         $id_interno     = $_POST['id_interno'] ?? '';
         
         // Checkbox: Si viene post, es 1, si no, es 0
-        $es_accesorio   = isset($_POST['es_accesorio']) ? 1 : 0; 
+        $es_accesorio   = isset($_POST['es_accesorio']) ? 1 : 0;
+        $es_prestamo     = isset($_POST['es_prestamo']) ? 1 : 0;
         
         $cpu_info       = $_POST['cpu_info'] ?? ''; 
         $monitor_info   = $_POST['monitor_info'] ?? '';
@@ -379,7 +383,8 @@ include_once 'conn.php';
                     remanente = ?,
                     observaciones = ?,
                     fecha_adquisicion = ?,
-                    region = ?
+                    region = ?,
+                    prestamo = ?
                 WHERE id = ?";
 
         if ($stmt = $conn->prepare($sql)) {
@@ -387,7 +392,7 @@ include_once 'conn.php';
             // CORREGIDO: 18 letras exactas para 18 variables
             // i=int, s=string, d=double (decimales)
             // Asumo que 'region' es un ID numérico (i). Si guardas texto, cambia la penúltima 'i' por 's'.
-            $stmt->bind_param("iisssssssiidddssii", 
+            $stmt->bind_param("iisssssssiidddssiii", 
                 $id_tipo_activo,    // i
                 $es_accesorio,      // i
                 $descripcion,       // s
@@ -404,7 +409,8 @@ include_once 'conn.php';
                 $remanente,         // d
                 $observaciones,     // s
                 $fechaAdquisicion,  // s 
-                $region,            // i 
+                $region,            // i
+                $es_prestamo,       // i 
                 $id                 // i (El ID va al final por el WHERE)
             );
 
@@ -644,6 +650,7 @@ include_once 'conn.php';
         exit;
     }
 
+    
 
 $conn->close();
 

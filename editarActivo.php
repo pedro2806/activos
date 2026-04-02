@@ -51,7 +51,7 @@
 
                                 <h6 class="text-muted text-uppercase mb-3 small fw-bold border-bottom pb-2">Clasificación</h6>
                                 <div class="row mb-3">
-                                    <div class="col-md-5">
+                                    <div class="col-md-4">
                                         <label class="form-label">Tipo de Activo</label>
                                         <select class="form-select" id="editTipoActivo" name="editTipoActivo" required>
                                             <option value="">Selecciona...</option>
@@ -61,10 +61,16 @@
                                             <option value="4">HERRAMIENTAS GENERALES</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-md-4">
                                         <div class="form-check form-switch mt-4">
                                             <input class="form-check-input" type="checkbox" id="editEsAccesorio" name="es_accesorio">
                                             <label class="form-check-label" for="editEsAccesorio">¿Es un accesorio?</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch mt-4">
+                                            <input class="form-check-input" type="checkbox" id="editEsPrestamo" name="es_prestamo">
+                                            <label class="form-check-label" for="editEsPrestamo">¿Es un préstamo?</label>
                                         </div>
                                     </div>
                                 </div>
