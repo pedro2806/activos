@@ -221,7 +221,7 @@
                         var $activoSelect = $('#activoSelect');
                         $activoSelect.empty().append('<option value="">Selecciona...</option>');
                         activos.forEach(function(activo) {
-                            $activoSelect.append('<option value="' + activo.id + '">' + activo.descripcion + '</option>');
+                            $activoSelect.append('<option value="' + activo.id + '">' + activo.descripcion + ' - ma: ' + activo.marca + '- mo ' + activo.modelo + ' (' + activo.no_serie + ')</option>');
                         });                        
                         $activoSelect.select2({
                             theme: 'bootstrap-5'
