@@ -300,7 +300,7 @@
                             </tr>`;
                         });
                     } else {
-                        html = '<tr><td colspan="7" class="text-muted py-4">No hay préstamos registrados.</td></tr>';
+                        html = '<tr><td class="text-muted py-4">No hay préstamos registrados.</td></tr>';
                     }
 
                     // 2. Inyectar HTML
