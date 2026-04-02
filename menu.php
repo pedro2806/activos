@@ -85,7 +85,7 @@
         const cuantos = (respuesta && respuesta.status === 'success') 
                         ? parseInt(respuesta.data[0].cuantos) 
                         : 0;
-alert(cuantos);
+
         if (cuantos <= 0) {            
             $('#navRentas').hide(); // Oculta el elemento si no tiene acceso            
         }else {
