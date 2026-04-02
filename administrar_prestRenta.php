@@ -300,7 +300,7 @@
                             </tr>`;
                         });
                     } else {
-                        html = '<tr><td class="text-muted py-4">No hay préstamos registrados.</td></tr>';
+                       //html = '<tr><td colspan="7" class="text-muted py-4">No hay préstamos registrados.</td></tr>';
                     }
 
                     // 2. Inyectar HTML
@@ -314,7 +314,7 @@
                     });
                 },
                 error: function() {
-                    $('#tbodyPrestamos').html('<tr><td colspan="7" class="text-danger py-4">Error al conectar con el servidor.</td></tr>');
+                    $('#tbodyPrestamos').html('<tr><td colspan="6" class="text-danger py-4">Error al conectar con el servidor.</td></tr>');
                     Swal.fire('Error', 'No se pudo cargar la tabla de préstamos.', 'error');
                 }
             });

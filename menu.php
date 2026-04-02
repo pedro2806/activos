@@ -54,8 +54,8 @@
     </a>
     <div id="collapseRentas" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
-            <a class="collapse-item" href="rentaPrestamo">Nueva movimiento</a>
-            <a class="collapse-item" href="administrar_prestRenta">Administrar Prest/Renta</a>
+            <a class="collapse-item" href="rentaPrestamo">Nuevo movimiento</a>
+            <a class="collapse-item" href="administrar_prestRenta">Administrar Prest/Rentas</a>
         </div>
     </div>
 </li>
