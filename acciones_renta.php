@@ -17,7 +17,7 @@ include_once 'conn.php';
     }
 
     if ($accion == 'obtener_activos_disponibles') {
-        $sql = "SELECT id, descripcion FROM activos WHERE estatus = 1 AND prestamo=1";
+        $sql = "SELECT id, descripcion, marca, modelo, no_serie FROM activos WHERE estatus = 1 AND prestamo=1";
         $result = $conn->query($sql);
         $activos = [];
         if ($result->num_rows > 0) {
