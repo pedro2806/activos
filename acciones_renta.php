@@ -55,6 +55,8 @@ include_once 'conn.php';
         $moneda = $conn->real_escape_string($_POST['moneda']);
         $renta_dia = (float) $_POST['renta_dia'];
         $tipo_movimiento = $conn->real_escape_string($_POST['tipo_movimiento']);
+        $ov = $conn->real_escape_string($_POST['orden_venta']);
+
 
         // 2. Validar que no vengan vacíos los selectores principales
         if(empty($id_activo) || empty($id_cliente)) {
@@ -64,25 +66,81 @@ include_once 'conn.php';
 
         // 3. Preparar la consulta SQL
         $sql = "INSERT INTO prestamos_activos 
-                (id_activo, id_cliente, fecha_entrega, responsable, contacto_responsable, moneda, renta_dia, fecha_inicio, fecha_fin, tipo) 
+                (id_activo, id_cliente, fecha_entrega, responsable, contacto_responsable, moneda, renta_dia, fecha_inicio, fecha_fin, tipo, ov) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
         if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("iissssssss", $id_activo, $id_cliente, $fecha_entrega, $responsable, $contacto, $moneda, $renta_dia, $fecha_inicio, $fecha_fin, $tipo_movimiento);
+            $stmt->bind_param("iisssssssss", $id_activo, $id_cliente, $fecha_entrega, $responsable, $contacto, $moneda, $renta_dia, $fecha_inicio, $fecha_fin, $tipo_movimiento, $ov);
             
-            // 4. Ejecutar y responder a JavaScript
+            // 4. Ejecutar
             if ($stmt->execute()) {
+
+                // --- 1. CAPTURAR EL ID INMEDIATAMENTE ANTES DE CUALQUIER OTRA CONSULTA ---
+                $id_nuevo_prestamo = $conn->insert_id;
+
+                // --- 2. REGISTRAR EN EL LOG ---                                
+                registrarLog($conn, $id_activo, $noEmpleado, 'PRESTAMO_REGISTRADO', "Se registró un nuevo préstamo (Folio: $id_nuevo_prestamo) para el activo con ID: $id_activo");                
                 
-                // --- REGISTRAR EN EL LOG ---                
-                registrarLog($conn, $id_activo, $noEmpleado, 'PRESTAMO_REGISTRADO', "Se registró un nuevo préstamo para el activo con ID: $id_activo");                
-                
-                $sqlUpdateActivo = "UPDATE activos SET estatus = 2 WHERE id = ?"; // Suponiendo que 2 es prestado
+                // --- 3. ACTUALIZAR ESTATUS DEL ACTIVO PRINCIPAL ---
+                $sqlUpdateActivo = "UPDATE activos SET estatus = 2 WHERE id = ?"; // 2 es prestado
                 $stmtActivo = $conn->prepare($sqlUpdateActivo);
                 $stmtActivo->bind_param("i", $id_activo);
                 $stmtActivo->execute();
-                
+                $stmtActivo->close();
+            
+                // --- 4. PROCESAR ITEMS ADICIONALES ---
+                $total_items = isset($_POST['total_items_adicionales']) ? (int)$_POST['total_items_adicionales'] : 0;
 
+                // Carpeta base para guardar las imágenes de evidencia
+                $directorio_subida = 'img/evidencias_prestamos/';
+                if (!file_exists($directorio_subida)) {
+                    mkdir($directorio_subida, 0777, true); 
+                }
+
+                for ($i = 1; $i <= $total_items; $i++) {
+                    
+                    // Solo procesamos si seleccionaron un Item en esa fila
+                    if (!empty($_POST["item_adicional_$i"])) {
+                        
+                        $id_item = (int)$_POST["item_adicional_$i"];
+                        $cantidad = (int)$_POST["cantidad_adicional_$i"];
+                        $comentarios = $conn->real_escape_string($_POST["comentarios_adicional_$i"]);
+                        $ruta_imagen_final = null;
+
+                        // Procesar la imagen de evidencia
+                        if (isset($_FILES["imagen_adicional_$i"]) && $_FILES["imagen_adicional_$i"]['error'] == UPLOAD_ERR_OK) {
+                            
+                            $extension = pathinfo($_FILES["imagen_adicional_$i"]['name'], PATHINFO_EXTENSION);
+                            $nombre_foto = "evidencia_pres" . $id_nuevo_prestamo . "_item" . $i . "_" . time() . "." . $extension;
+                            $ruta_destino = $directorio_subida . $nombre_foto;
+
+                            if (move_uploaded_file($_FILES["imagen_adicional_$i"]['tmp_name'], $ruta_destino)) {
+                                $ruta_imagen_final = $ruta_destino;
+                            }
+                        }
+
+                        // Guardar en la tabla de items adicionales
+                        $sql_item = "INSERT INTO prestamos_items_adicionales (id_prestamo, id_item, cantidad, ruta_imagen, comentarios) VALUES (?, ?, ?, ?, ?)";
+                        
+                        if ($stmt_item = $conn->prepare($sql_item)) {
+                            $stmt_item->bind_param("iiiss", $id_nuevo_prestamo, $id_item, $cantidad, $ruta_imagen_final, $comentarios);
+                            
+                            if ($stmt_item->execute()) {
+                                // Cambiar estatus del activo adicional a "PRESTADO"                                
+                                $sqlUpdateEstatus = "UPDATE activos SET estatus = 2 WHERE id = ?";
+                                $stmtUpdateEst = $conn->prepare($sqlUpdateEstatus);
+                                $stmtUpdateEst->bind_param("i", $id_item);
+                                $stmtUpdateEst->execute();
+                                $stmtUpdateEst->close();
+                            }
+                            $stmt_item->close();
+                        }
+                    }
+                }
+
+                // Todo se guardó correctamente, enviamos success
                 echo json_encode(['status' => 'success']);
+            
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Error al guardar en la base de datos: ' . $stmt->error]);
             }
@@ -108,7 +166,8 @@ include_once 'conn.php';
                     COALESCE(c.cliente_largo, 'Cliente Desconocido') as cliente_nombre,
                     p.moneda,
                     p.renta_dia,
-                    p.tipo as tipo_movimiento
+                    p.tipo as tipo_movimiento,
+                    p.ov
                 FROM prestamos_activos p
                 LEFT JOIN activos a ON p.id_activo = a.id
                 LEFT JOIN clientes c ON p.id_cliente = c.id
@@ -130,68 +189,59 @@ include_once 'conn.php';
     if ($accion == 'devolver_prestamo') {
         $id_prestamo = (int) $_POST['id_prestamo'];
         $id_activo = (int) $_POST['id_activo'];
+        $comentarios = $conn->real_escape_string($_POST['comentarios']);
 
-        if ($id_prestamo <= 0 || $id_activo <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.']);
-            exit;
-        }
-
-        // Iniciamos una transacción para asegurar que ambos UPDATE ocurran o ninguno
         $conn->begin_transaction();
 
         try {
-            // 1. Marcar el préstamo como devuelto (estatus = 0)
-            $sqlPrestamo = "UPDATE prestamos_activos SET estatus = 0 WHERE id = ?";
+            // 1. Marcar como devuelto (0), guardar fecha real y comentarios
+            $sqlPrestamo = "UPDATE prestamos_activos 
+                            SET estatus = 0, 
+                                fecha_devolucion_real = NOW(), 
+                                comentarios_devolucion = ? 
+                            WHERE id = ?";
             $stmtPrestamo = $conn->prepare($sqlPrestamo);
-            $stmtPrestamo->bind_param("i", $id_prestamo);
+            $stmtPrestamo->bind_param("si", $comentarios, $id_prestamo);
             $stmtPrestamo->execute();
-            registrarLog($conn, $id_activo, $noEmpleado, 'PRESTAMO_DEVUELTO', "Se devolvió el préstamo con ID: $id_prestamo para el activo con ID: $id_activo");
-            
+            $stmtPrestamo->close();
+
+            // 2. Liberar el activo principal (Estatus 1 = Disponible)
             $sqlActivo = "UPDATE activos SET estatus = 1 WHERE id = ?";
             $stmtActivo = $conn->prepare($sqlActivo);
             $stmtActivo->bind_param("i", $id_activo);
             $stmtActivo->execute();
-            
-            // Confirmamos los cambios
+            $stmtActivo->close();
+
+            // 3. Buscar y liberar los items adicionales
+            $sqlBuscarItems = "SELECT id_item FROM prestamos_items_adicionales WHERE id_prestamo = ?";
+            $stmtBuscar = $conn->prepare($sqlBuscarItems);
+            $stmtBuscar->bind_param("i", $id_prestamo);
+            $stmtBuscar->execute();
+            $resultItems = $stmtBuscar->get_result();
+
+            while($item = $resultItems->fetch_assoc()) {
+                $id_item_extra = $item['id_item'];
+
+                $sqlRegresarEstatus = "UPDATE activos SET estatus = 1 WHERE id = ?";
+                $stmtRegresarEst = $conn->prepare($sqlRegresarEstatus);
+                $stmtRegresarEst->bind_param("i", $id_item_extra);
+                $stmtRegresarEst->execute();
+                $stmtRegresarEst->close();
+            }
+            $stmtBuscar->close();
+
+            // OPCIONAL PERO RECOMENDADO: Registrar en el log general
+            // registrarLog($conn, $id_activo, $_SESSION['id_usuario'], 'PRESTAMO_DEVUELTO', "Se devolvió el préstamo Folio: $id_prestamo. Notas: $comentarios");
+
             $conn->commit();
             echo json_encode(['status' => 'success']);
 
         } catch (Exception $e) {
-            // Si algo falla, deshacemos los cambios
             $conn->rollback();
-            echo json_encode(['status' => 'error', 'message' => 'Error al procesar la devolución: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
         }
         exit;
-    }
-
-    if ($accion == 'obtener_detalle_prestamo') {
-        $id_prestamo = (int) $_POST['id_prestamo'];
-
-        $sql = "SELECT 
-                    p.*,
-                    COALESCE(a.descripcion, 'Activo Desconocido') as activo_desc,
-                    COALESCE(c.cliente_largo, 'Cliente Desconocido') as cliente_nombre
-                FROM prestamos_activos p
-                LEFT JOIN activos a ON p.id_activo = a.id
-                LEFT JOIN clientes c ON p.id_cliente = c.id
-                WHERE p.id = ?";
-                
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("i", $id_prestamo);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($row = $result->fetch_assoc()) {
-                echo json_encode(['status' => 'success', 'data' => $row]);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Préstamo no encontrado.']);
-            }
-            $stmt->close();
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Error en la base de datos.']);
-        }
-        exit;
-    }
+    }    
 
     if ($accion == 'editar_prestamo') {
         
@@ -233,6 +283,62 @@ include_once 'conn.php';
             $stmt->close();
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Error en la consulta SQL.']);
+        }
+        exit;
+    }
+
+    if ($accion == 'obtener_detalle_prestamo') {
+        $id_prestamo = (int) $_POST['id_prestamo'];
+
+        // 1. Consulta principal (El Préstamo)
+        $sql = "SELECT 
+                    p.*,
+                    COALESCE(a.descripcion, 'Activo Desconocido') as activo_desc,
+                    COALESCE(c.cliente_largo, 'Cliente Desconocido') as cliente_nombre
+                FROM prestamos_activos p
+                LEFT JOIN activos a ON p.id_activo = a.id
+                LEFT JOIN clientes c ON p.id_cliente = c.id
+                WHERE p.id = ?";
+                
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("i", $id_prestamo);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($row = $result->fetch_assoc()) {
+                
+                // --- NUEVO: 2. Buscar los items adicionales de este préstamo ---
+                $items_adicionales = [];
+                $sqlItems = "SELECT 
+                                pa.cantidad, 
+                                pa.comentarios, 
+                                pa.ruta_imagen,
+                                a.descripcion as item_nombre
+                            FROM prestamos_items_adicionales pa
+                            LEFT JOIN activos a ON pa.id_item = a.id
+                            WHERE pa.id_prestamo = ?";
+                            
+                $stmtItems = $conn->prepare($sqlItems);
+                $stmtItems->bind_param("i", $id_prestamo);
+                $stmtItems->execute();
+                $resItems = $stmtItems->get_result();
+                
+                while ($itemRow = $resItems->fetch_assoc()) {
+                    $items_adicionales[] = $itemRow;
+                }
+                $stmtItems->close();
+
+                // Adjuntamos los items al arreglo principal
+                $row['items_extra'] = $items_adicionales;
+
+                // Respondemos todo el paquete completo
+                echo json_encode(['status' => 'success', 'data' => $row]);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Préstamo no encontrado.']);
+            }
+            $stmt->close();
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error en la base de datos.']);
         }
         exit;
     }
