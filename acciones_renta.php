@@ -67,7 +67,7 @@ include_once 'conn.php';
         // 3. Preparar la consulta SQL
         $sql = "INSERT INTO prestamos_activos 
                 (id_activo, id_cliente, fecha_entrega, responsable, contacto_responsable, moneda, renta_dia, fecha_inicio, fecha_fin, tipo, ov) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("iisssssssss", $id_activo, $id_cliente, $fecha_entrega, $responsable, $contacto, $moneda, $renta_dia, $fecha_inicio, $fecha_fin, $tipo_movimiento, $ov);
