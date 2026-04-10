@@ -240,6 +240,8 @@
                         $('.fila-dinamica').remove();
                         contadorItems = 1;
                         $('#totalItemsInput').val(contadorItems);
+
+                        window.location.href = 'administrar_prestRenta.php';
                         
                     } else {
                         Swal.fire('Error', response.message || 'Error al guardar en base de datos.', 'error');
