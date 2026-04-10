@@ -36,11 +36,16 @@
                 </div>
                 <div class="container-fluid">
                     <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Nuevo préstamo</h6>
+                        <div class="card-header py-1">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Nuevo préstamo</h6>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="guardarPrestamo()" id="btnGuardarPrestamo">
+                                    Registrar préstamo
+                                </button>
+                            </div>                            
                         </div>
                         <div class="card-body">
-                            <form id="prestamoForm">
+                            <form id="prestamoForm" enctype="multipart/form-data">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
                                         <label for="activoSelect" class="form-label">Tipo de movimiento</label>
@@ -50,12 +55,17 @@
                                             <option value="renta">Renta</option>                                        
                                         </select>
                                     </div>                                    
-                                    <div class="col-md-9">
+                                    <div class="col-md-6">
                                         <label for="activoSelect" class="form-label">Selecciona el activo a prestar</label>
                                         <select class="form-select" id="activoSelect" name="activo_id" required>
                                             <option value="">Selecciona...</option>                                        
                                         </select>
                                     </div>
+                                    <div class="col-md-3">
+                                        <label for="ovInput" class="form-label">Orden de venta</label>
+                                        <input type="text" class="form-control" id="ovInput" name="orden_venta" placeholder="Ej. MESS-OV-0000-2026">
+                                    </div>
+
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-3">
@@ -77,7 +87,7 @@
                                         <input type="text" class="form-control" id="contactoResponsable" name="contacto_responsable" required>
                                     </div>
                                 </div>
-                                <div class="row mb-3">                                    
+                                <div class="row mb-3">
                                     <div class="col-md-3">
                                         <label for="fechaInicioInput" class="form-label">Fecha de inicio</label>
                                         <input type="date" class="form-control" id="fechaInicioInput" name="fecha_inicio" required>
@@ -101,6 +111,43 @@
                                         </div>
                                     </div>
                                 </div>
+                                <br>
+                                <hr class="mt-4 mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="font-weight-bold text-primary m-0"><i class="fas fa-boxes mr-2"></i>Items Adicionales (Opcional)</h6>
+                                    <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="agregarItemAdicional()">
+                                        <i class="fas fa-plus"></i> Agregar Item
+                                    </button>
+                                </div>
+
+                                <div id="rentaAdicionales">
+                                    <div class="row mb-3 align-items-end" id="fila_adicional_1">
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted small">Item adicional 1</label> 
+                                            <select name="item_adicional_1" id="item_adicional_1" class="form-select">
+                                                <option value="">Seleccionar item</option>                                                
+                                                </select>
+                                        </div> 
+                                        <div class="col-md-1">
+                                            <label class="form-label text-muted small">Cantidad</label>
+                                            <input type="number" min="0" class="form-control" name="cantidad_adicional_1" placeholder="0">
+                                        </div>                                        
+                                        <div class="col-md-2 text-center">
+                                            <label class="form-label text-muted small d-block mb-1">Evidencia</label>
+                                            <input type="file" class="d-none" id="imagen_adicional_1" name="imagen_adicional_1" accept="image/*" onchange="cambiarEstadoImagen(this, 1)">
+                                            <label for="imagen_adicional_1" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm w-100" style="cursor: pointer;">
+                                                <i class="fas fa-camera"></i> <span id="img_text_1">Subir foto</span>
+                                            </label>                                            
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label text-muted small">Comentarios</label>
+                                            <textarea class="form-control" name="comentarios_adicional_1" rows="1" placeholder="Ingrese comentarios"></textarea>        
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="total_items_adicionales" id="totalItemsInput" value="1">
+
                                 <button type="button" class="btn btn-primary" onclick="guardarPrestamo()" id="btnGuardarPrestamo">
                                     Registrar préstamo
                                 </button>
@@ -140,7 +187,8 @@
                 
 
         $(document).ready(function() {
-            llenaSelectActivos();
+            llenaSelectActivos('activoSelect');
+            llenaSelectActivos('item_adicional_1');
             llenaSelectClientes();
         });
 
@@ -152,30 +200,28 @@
 
         // --- FUNCIÓN PARA GUARDAR EL PRÉSTAMO ---
         function guardarPrestamo() {
-            // 1. Obtener el formulario
             const form = document.getElementById('prestamoForm');
 
-            // 2. Forzar la validación de HTML5 (revisa los 'required' y fechas)
             if (!form.checkValidity()) {
-                form.reportValidity(); // Muestra el mensaje de "Completa este campo" en rojo
-                return; // Detiene la función si hay errores
+                form.reportValidity(); 
+                return; 
             }
 
-            // 3. Recopilar los datos y agregar la acción para PHP
-            let formData = $('#prestamoForm').serialize();
-            formData += '&opcion=registrar_prestamo';
+            //Usamos FormData para poder mandar las imágenes ---
+            let formData = new FormData(form);
+            formData.append('opcion', 'registrar_prestamo');
 
-            // 4. Efecto de carga en el botón (evita dobles envíos)
             let btn = $('#btnGuardarPrestamo');
             let textoOriginal = btn.html();
             btn.html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
             btn.prop('disabled', true);
 
-            // 5. Petición AJAX
             $.ajax({
                 url: 'acciones_renta.php',
                 method: 'POST',
                 data: formData,
+                contentType: false, // OBLIGATORIO PARA ARCHIVOS
+                processData: false, // OBLIGATORIO PARA ARCHIVOS
                 dataType: 'json',
                 success: function(response) {
                     if (response.status === 'success') {
@@ -187,11 +233,13 @@
                             showConfirmButton: false
                         });
                         
-                        window.location.href = 'administrar_prestRenta.php';
-                        // Limpiar todo el formulario
                         form.reset(); 
-                        // Limpiar los Select2 visualmente
                         $('#activoSelect, #clienteSelect').val('').trigger('change'); 
+                        
+                        // Limpiamos también las filas dinámicas extras que se hayan agregado
+                        $('.fila-dinamica').remove();
+                        contadorItems = 1;
+                        $('#totalItemsInput').val(contadorItems);
                         
                     } else {
                         Swal.fire('Error', response.message || 'Error al guardar en base de datos.', 'error');
@@ -199,17 +247,15 @@
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     Swal.fire('Error', 'Hubo un problema de comunicación con el servidor.', 'error');
-                    console.error("Error AJAX:", textStatus, errorThrown);
                 },
                 complete: function() {
-                    // Restaurar el botón a la normalidad sin importar si hubo éxito o error
                     btn.html(textoOriginal);
                     btn.prop('disabled', false);
                 }
             });
         }
 
-        function llenaSelectActivos() {
+        function llenaSelectActivos(selectId) {
             $.ajax({
                 url: 'acciones_renta.php',
                 method: 'POST',
@@ -218,12 +264,17 @@
                 success: function(response) {
                     if (response.status === 'success') {
                         var activos = response.data;
-                        var $activoSelect = $('#activoSelect');
+                        var $activoSelect = $('#' + selectId);
+                        var $selectitemAdicional = $('#ItemAdicionalInput');
                         $activoSelect.empty().append('<option value="">Selecciona...</option>');
                         activos.forEach(function(activo) {
                             $activoSelect.append('<option value="' + activo.id + '">' + activo.descripcion + ' - Ma: ' + activo.marca + '  - Mod: ' + activo.modelo + '   (NS:' + activo.no_serie + ')</option>');
+                            $selectitemAdicional.append('<option value="' + activo.id + '">' + activo.descripcion + ' - Ma: ' + activo.marca + '  - Mod: ' + activo.modelo + '   (NS:' + activo.no_serie + ')</option>');
                         });                        
                         $activoSelect.select2({
+                            theme: 'bootstrap-5'
+                        });
+                        $selectitemAdicional.select2({
                             theme: 'bootstrap-5'
                         });
                     } else {
@@ -262,6 +313,76 @@
                 }
             });
         }
+
+        // --- LÓGICA DE ITEMS DINÁMICOS ---
+    let contadorItems = 1;
+
+    function agregarItemAdicional() {
+        contadorItems++;
+        
+        // Actualizamos el input oculto para que PHP sepa cuántos procesar
+        $('#totalItemsInput').val(contadorItems);
+
+        llenaSelectActivos('item_adicional_' + contadorItems); // Llenamos el nuevo select con los activos disponibles
+
+        let nuevaFila = `
+            <div class="row mb-3 align-items-end fila-dinamica" id="fila_adicional_${contadorItems}">
+                <div class="col-md-4">
+                    <label class="form-label text-muted small">Item adicional ${contadorItems}</label> 
+                    <select name="item_adicional_${contadorItems}" id="item_adicional_${contadorItems}" class="form-select">
+                        <option value="">Seleccionar item</option>
+                        </select>
+                </div> 
+                <div class="col-md-1">
+                    <label class="form-label text-muted small">Cantidad</label>
+                    <input type="number" min="0" class="form-control" name="cantidad_adicional_${contadorItems}" placeholder="0">
+                </div>                                        
+                <div class="col-md-2 text-center">
+                    <label class="form-label text-muted small d-block mb-1">Evidencia</label>
+                    <input type="file" class="d-none" id="img_input_${contadorItems}" name="imagen_adicional_${contadorItems}" accept="image/*" onchange="cambiarEstadoImagen(this, ${contadorItems})">
+                    <label for="img_input_${contadorItems}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm w-100" style="cursor: pointer;">
+                        <i class="fas fa-camera"></i> <span id="img_text_${contadorItems}">Subir foto</span>
+                    </label>                                            
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted small">Comentarios</label>
+                    <textarea class="form-control" name="comentarios_adicional_${contadorItems}" rows="1" placeholder="Ingrese comentarios"></textarea>        
+                </div>
+                <div class="col-md-1 text-center">
+                    <button type="button" class="btn btn-outline-danger" onclick="eliminarItemAdicional(${contadorItems})" title="Eliminar fila">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Inyectamos la nueva fila al final del contenedor
+        $('#rentaAdicionales').append(nuevaFila);
+    }
+
+    function eliminarItemAdicional(id) {
+        // Eliminamos el div completo de la pantalla
+        $(`#fila_adicional_${id}`).remove();
+        // Nota: No restamos el 'contadorItems' para evitar que se repitan los IDs y names si agregan otro después.
+    }
+
+    // --- FUNCIÓN PARA CAMBIAR ICONO Y TEXTO CUANDO SE SELECCIONA UNA IMAGEN ---
+    function cambiarEstadoImagen(input, id) {
+        let labelText = document.getElementById(`img_text_${id}`);
+        let labelButton = input.nextElementSibling; // El <label> que usamos como botón
+
+        if (input.files && input.files[0]) {
+            // Archivo seleccionado: Cambiar a verde y mostrar check
+            labelText.innerHTML = "Foto lista";
+            labelButton.classList.remove('btn-outline-secondary');
+            labelButton.classList.add('btn-outline-success');
+        } else {
+            // Se canceló la selección: Regresar a gris
+            labelText.innerHTML = "Subir foto";
+            labelButton.classList.remove('btn-outline-success');
+            labelButton.classList.add('btn-outline-secondary');
+        }
+    }
     </script>
 </body>
 </html>

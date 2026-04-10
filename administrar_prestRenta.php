@@ -50,6 +50,7 @@
                                             <!-- <th>Folio</th> -->
                                             <th>Activo/Tipo</th>
                                             <th>Cliente</th>
+                                            <th>OV</th>
                                             <th>Responsable</th>        
                                             <th>Periodo</th>
                                             <th>Renta Estimada</th>
@@ -89,12 +90,12 @@
                     <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body bg-light">
-                    <div class="row g-3">
-                        <div class="col-md-2">
-                            <label class="form-label text-muted small mb-0">Tipo</label>
+                    <div class="row g-3">                        
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small mb-0">Tipo/OV</label>
                             <div class="h6 font-weight-bold text-dark" id="detTipo"></div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small mb-0">Activo Prestado</label>
                             <div class="h6 font-weight-bold text-dark" id="detActivo"></div>
                         </div>
@@ -102,41 +103,75 @@
                             <label class="form-label text-muted small mb-0">Cliente</label>
                             <div class="h6 font-weight-bold text-dark" id="detCliente"></div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small mb-0">Responsable / Contacto</label>
                             <div class="h6 text-dark"><span id="detResponsable"> </span>  <small class="text-muted"><i class="fas fa-phone"></i> <span id="detContacto"></span></small></div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small mb-0">Estatus</label>
                             <div class="h6" id="detEstatus"></div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small mb-0">Fecha de Entrega</label>
                             <div class="h6 text-dark" id="detEntrega"></div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small mb-0">Periodo Oficial</label>
                             <div class="h6 text-dark"><span id="detInicio"></span> al <span id="detFin"></span></div>
                         </div>
-                        <div class="col-md-4" style="display: none;">
+                        <div class="col-md-6" style="display: none;">
                             <label class="form-label text-muted small mb-0">Fecha de Registro</label>
                             <div class="h6 text-dark" id="detRegistro"></div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small mb-0">Costo Renta (Por Día)</label>
                             <div class="h6 text-success font-weight-bold"><span id="detMoneda"></span> $<span id="detRentaDia"></span></div>
-                        </div>
-                        <div class="col-md-4 border-left-primary shadow-sm rounded p-2 bg-white">
+                        </div>                        
+                        <div class="col-md-6 border-left-primary shadow-sm rounded p-2 bg-white">
                             <label class="form-label text-primary small font-weight-bold mb-0">Total Estimado a Cobrar</label>
-                            <div class="h5 text-dark font-weight-bold mb-0">
+                            <div class="h5 text-dark font-weight-bold mb-0" style="font-size: 1.15rem;">
                                 <span id="detTotalMoneda"></span> $<span id="detTotalRenta"></span>
                                 <small class="text-muted" id="detDiasCalculados"></small>
                             </div>                            
                         </div>
+                        <div class="col-12 mt-3" id="bloqueDevolucion" style="display: none;">
+                            <div class="alert alert-success mb-0 border-left-success shadow-sm">
+                                <div class="row align-items-center">
+                                    <div class="col-md-4 border-right">
+                                        <small class="font-weight-bold text-success d-block mb-1"><i class="fas fa-calendar-check mr-1"></i> Entregado el:</small>
+                                        <span class="h6 text-dark" id="detDevolucionReal"></span>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <small class="font-weight-bold text-success d-block mb-1"><i class="fas fa-clipboard-check mr-1"></i> Notas de recepción:</small>
+                                        <span class="text-dark small" id="detDevolucionNotas"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4" id="contenedorItemsDetalle" style="display: none;">
+                            <h6 class="font-weight-bold text-secondary border-bottom pb-2"><i class="fas fa-boxes mr-2"></i>Items Adicionales Entregados</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered text-center mt-2" style="font-size: 0.85rem;">
+                                    <thead class="bg-light text-dark">
+                                        <tr>
+                                            <th>Item / Descripción</th>
+                                            <th>Cant.</th>
+                                            <th>Comentarios</th>
+                                            <th>Evidencia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="detItemsAdicionales">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a href="#" target="_blank" class="btn btn-primary" id="btnImprimirRecibo">
+                        <i class="fas fa-print mr-1"></i> Imprimir Recibo
+                    </a>
                 </div>
             </div>
         </div>
@@ -286,6 +321,7 @@
                             html += `<tr style="${classDevuelto}">                                
                                 <td><strong>${p.activo_desc}</strong><br> ${badgeTipoMovimiento}</td>
                                 <td>${p.cliente_nombre}</td>
+                                <td>${p.ov}</td>
                                 <td>${p.responsable}<br><small class="text-muted"><i class="fas fa-phone"></i> ${p.contacto_responsable}</small></td>
                                 <td><span class="text-success"><strong>${p.fecha_inicio}</strong></span> a <br> <span class="text-danger"><strong>${p.fecha_fin}</strong></span></td>
                                 <td>${diasPrestamo} días: <strong>${p.moneda} ${totalEstimado.toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></td>
@@ -322,16 +358,21 @@
 
         function devolverActivo(idPrestamo, idActivo) {
             Swal.fire({
-                title: '¿Marcar como devuelto?',
-                text: "El préstamo se cerrará y el activo volverá a estar disponible en el inventario.",
+                title: 'Confirmar Devolución',
+                text: "Añade notas sobre el estado de los equipos al recibirlos (Opcional):",
+                input: 'textarea',
+                inputPlaceholder: 'Ej. Todo en orden / El mouse tiene un raspón / Faltó entregar manuales...',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#1cc88a',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, devolver',
+                confirmButtonText: '<i class="fas fa-check"></i> Registrar Entrada',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    
+                    // Capturamos lo que escribió el usuario (o ponemos un texto por defecto)
+                    let comentarios = result.value || 'Devolución sin observaciones.';
                     
                     // Petición AJAX para devolver
                     $.ajax({
@@ -340,22 +381,22 @@
                         data: { 
                             opcion: 'devolver_prestamo',
                             id_prestamo: idPrestamo,
-                            id_activo: idActivo 
+                            id_activo: idActivo,
+                            comentarios: comentarios // Mandamos el comentario
                         },
                         dataType: 'json',
                         success: function(response) {
                             if (response.status === 'success') {
-                                Swal.fire('¡Devuelto!', 'El activo ha regresado al inventario.', 'success');
-                                cargarPrestamos(); // Recargar la tabla automáticamente
+                                Swal.fire('¡Devuelto!', 'El inventario ha sido actualizado.', 'success');
+                                cargarPrestamos(); // Recargar la tabla
                             } else {
                                 Swal.fire('Error', response.message, 'error');
                             }
                         },
                         error: function() {
-                            Swal.fire('Error', 'Hubo un problema de comunicación con el servidor.', 'error');
+                            Swal.fire('Error', 'Hubo un problema de comunicación.', 'error');
                         }
                     });
-
                 }
             });
         }
@@ -392,17 +433,56 @@
                         $('#detRegistro').text(p.fecha_registro);
                         $('#detMoneda').text(p.moneda);
                         $('#detRentaDia').text(parseFloat(p.renta_dia).toLocaleString('en-US', {minimumFractionDigits: 2}));
-                        $('#detTipo').text(p.tipo_movimiento == 'renta' ? 'Renta' : 'Préstamo');
+                        $('#detTipo').text(p.tipo_movimiento == 'renta' ? 'Renta' : 'Préstamo' + (p.ov ? ` - OV: ${p.ov}` : '') );
 
                         $('#detTotalMoneda').text(p.moneda);
                         $('#detTotalRenta').text(totalEstimado.toLocaleString('en-US', {minimumFractionDigits: 2}));
                         $('#detDiasCalculados').text(`(${diasPrestamo} días)`);
+
+                        $('#btnImprimirRecibo').attr('href', 'generar_recibo.php?id=' + p.id);
                         
+                        //LLENAR TABLA DE ITEMS ADICIONALES ---
+                        let tbodyItems = $('#detItemsAdicionales');
+                        tbodyItems.empty(); // Limpiamos la tabla por si abrieron otro modal antes
+
+                        if (p.items_extra && p.items_extra.length > 0) {
+                            // Si hay items, mostramos el contenedor
+                            $('#contenedorItemsDetalle').show();
+                            
+                            p.items_extra.forEach(item => {
+                                // Validar si tiene foto para mostrar el botón o un guión
+                                let btnFoto = item.ruta_imagen 
+                                    ? `<button type="button" class="btn btn-sm btn-outline-primary rounded-circle" onclick="verEvidencia('${item.ruta_imagen}')" title="Ver Foto"><i class="fas fa-image"></i></button>`
+                                    : `<span class="text-muted">-</span>`;
+
+                                let tr = `
+                                    <tr class="align-middle">
+                                        <td class="text-left font-weight-bold text-dark">${item.item_nombre}</td>
+                                        <td>${item.cantidad}</td>
+                                        <td class="text-left text-muted small">${item.comentarios || 'Sin comentarios'}</td>
+                                        <td>${btnFoto}</td>
+                                    </tr>
+                                `;
+                                tbodyItems.append(tr);
+                            });
+                        } else {
+                            // Si no hay items, ocultamos toda la sección para que el modal se vea limpio
+                            $('#contenedorItemsDetalle').hide();
+                        }
+
                         // Estatus visual
                         let badge = p.estatus == 1 
                             ? '<span class="badge bg-warning text-dark">Prestado</span>' 
                             : '<span class="badge bg-success">Devuelto</span>';
                         $('#detEstatus').html(badge);
+
+                        if (p.estatus == 0) {
+                            $('#detDevolucionReal').text(p.fecha_devolucion_real);
+                            $('#detDevolucionNotas').text(p.comentarios_devolucion);
+                            $('#bloqueDevolucion').fadeIn();
+                        } else {
+                            $('#bloqueDevolucion').hide(); // Si sigue prestado, lo ocultamos
+                        }
 
                         // Mostrar el modal
                         var myModal = new bootstrap.Modal(document.getElementById('modalDetallesPrestamo'));
@@ -505,6 +585,19 @@
                     btn.html(textoOriginal);
                     btn.prop('disabled', false);
                 }
+            });
+        }
+
+        function verEvidencia(ruta) {
+            Swal.fire({
+                title: 'Evidencia Fotográfica',
+                imageUrl: ruta,
+                imageAlt: 'Foto de evidencia',
+                imageWidth: 600,
+                width: 650,
+                showConfirmButton: true,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#ec7b1f' // Color info de tu plantilla
             });
         }
     </script>
