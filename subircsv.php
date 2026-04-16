@@ -14,7 +14,7 @@ try {
 }
 
 // 2. Archivo
-$archivo = 'Activos_DCM.csv';
+$archivo = 'Activos_MobiliarioOficina_Fuerza.csv';
 
 if (($handle = fopen($archivo, "r")) !== FALSE) {
     // SQL preparado
@@ -22,8 +22,8 @@ if (($handle = fopen($archivo, "r")) !== FALSE) {
                 folio, id_tipo_activo, descripcion, marca, modelo, 
                 no_serie, id_interno, id_usuario, nombre_usuario, id_nave, 
                 ubicacion, cpu_info, monitor_info, cantidad, moi, 
-                costo, depreciacion, remanente, observaciones, fecha_adquisicion, es_accesorio, estatus                
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                costo, depreciacion, remanente, observaciones, fecha_adquisicion, es_accesorio, estatus, region, fecha_registro, registrado_por, prestamo               
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $pdo->prepare($sql);
     $fila = 0;
@@ -38,13 +38,14 @@ if (($handle = fopen($archivo, "r")) !== FALSE) {
         }
 
         try {
-            // Ejecutamos con los 22 campos del CSV
+            // Ejecutamos con los 26 campos del CSV
             $stmt->execute([
                 $datos[0],  $datos[1],  $datos[2],  $datos[3],  $datos[4],
                 $datos[5],  $datos[6],  $datos[7],  $datos[8],  $datos[9],
                 $datos[10], $datos[11], $datos[12], $datos[13], $datos[14],
                 $datos[15], $datos[16], $datos[17], $datos[18], $datos[19],
-                $datos[20], $datos[21]
+                $datos[20], $datos[21], $datos[22], $datos[23] = date('Y-m-d H:i:s'), $datos[24],
+                $datos[25]
             ]);
         } catch (Exception $e) {
             echo "Error en fila $fila (Folio: {$datos[0]}): " . $e->getMessage() . "<br>";
