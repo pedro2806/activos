@@ -56,6 +56,7 @@
                                                     <option value="2">MOBILIARIO y EQ DE OFICINA</option>
                                                     <option value="3">MAQUINAS Y EQUIPOS</option>
                                                     <option value="4">HERRAMIENTAS GENERALES</option>
+                                                    <option value="5">ACCESORIO</option>
                                                 </select>
                                             </div>
 
