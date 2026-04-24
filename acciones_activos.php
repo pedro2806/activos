@@ -252,7 +252,10 @@ include_once 'conn.php';
                         a.es_accesorio, 
                         a.region as id_region,
                         a.id_usuario, 
-                        a.id_nave, a.id_tipo_activo, a.prestamo
+                        a.id_nave, 
+                        a.id_tipo_activo,
+                        a.prestamo,
+                        a.ubicacion
                     FROM activos a
                     LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
                     LEFT JOIN mess_rrhh.usuarios u ON a.id_usuario = u.noEmpleado
@@ -356,6 +359,8 @@ include_once 'conn.php';
         $remanente      = $_POST['remanente'] ?? 0;
         $observaciones  = $_POST['observaciones'] ?? '';
 
+        $ubicacion      = $_POST['id_ubicacion'] ?? '';
+
         $fechaAdquisicion = empty($_POST['editFechaAdquisicion']) ? null : $_POST['editFechaAdquisicion'];
         $region         = $_POST['selectRegion'] ?? null; 
 
@@ -384,7 +389,8 @@ include_once 'conn.php';
                     observaciones = ?,
                     fecha_adquisicion = ?,
                     region = ?,
-                    prestamo = ?
+                    prestamo = ?,
+                    ubicacion = ?
                 WHERE id = ?";
 
         if ($stmt = $conn->prepare($sql)) {
@@ -392,7 +398,7 @@ include_once 'conn.php';
             // CORREGIDO: 18 letras exactas para 18 variables
             // i=int, s=string, d=double (decimales)
             // Asumo que 'region' es un ID numérico (i). Si guardas texto, cambia la penúltima 'i' por 's'.
-            $stmt->bind_param("iisssssssiidddssiii", 
+            $stmt->bind_param("iisssssssiidddssiisi", 
                 $id_tipo_activo,    // i
                 $es_accesorio,      // i
                 $descripcion,       // s
@@ -410,7 +416,8 @@ include_once 'conn.php';
                 $observaciones,     // s
                 $fechaAdquisicion,  // s 
                 $region,            // i
-                $es_prestamo,       // i 
+                $es_prestamo,       // i
+                $ubicacion,         // s
                 $id                 // i (El ID va al final por el WHERE)
             );
 
@@ -650,6 +657,21 @@ include_once 'conn.php';
         exit;
     }
 
+    if($accion == 'getNaves') {
+        $sqlNaves = "SELECT id, nombre FROM cat_naves ORDER BY nombre ASC";
+        $result = $conn->query($sqlNaves);
+        $naves = array();
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $naves[] = $row;
+            }
+        }
+        // Devolver la respuesta en formato JSON
+        header('Content-Type: application/json');
+        echo json_encode($naves);
+        exit;
+    }
     
 
 $conn->close();

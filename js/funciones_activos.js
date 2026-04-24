@@ -118,6 +118,9 @@
                         if(permiso === 'Edita') {
                             opciones = `
                                 <div class="d-flex justify-content-center gap-0">
+                                    <a href="reporteRecepcionActivo.php?id=${activo.id}" target="_blank" class="btn btn-sm btn-outline-danger" title="Generar PDF">
+                                        <i class="fas fa-fw fa-file-pdf"></i>
+                                    </a>
                                     <button class="btn btn-sm btn-outline-primary" title="Ver Detalles" onclick="verDetallesActivo(${activo.id})">
                                         <i class="fas fa-fw fa-eye"></i> 
                                     </button>
@@ -126,7 +129,7 @@
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger" title="Eliminar Activo" onclick="eliminarActivo(${activo.id})">
                                         <i class="fas fa-fw fa-trash"></i>
-                                    </button>
+                                    </button>                                    
                                 </div>
                             `;
                         }
@@ -418,6 +421,7 @@
                                         
                     $('#editTipoActivo').val(act.id_tipo_activo || 1).trigger('change');
                     $('#editNave').val(act.id_nave);
+                    $('#editUbicacion').val(act.ubicacion);
                     
                     var opcionUsuario = new Option(act.usuario, act.id_usuario, true, true);                    
                     $('#editSlcResponsable').append(opcionUsuario).trigger('change');
@@ -584,4 +588,36 @@
             }
         });
     }
+
+    // FUNCION PARA CARGAR NAVES
+    function getNaves(seleccionado) {
+        opcion = "getNaves";
+        $.ajax({
+            url: 'acciones_activos.php',
+            method: 'POST',
+            dataType: 'json',
+            data: {opcion},
+            success: function(data) {
+                var select = $(seleccionado);
+                i = 0;
+                data.forEach(function(nave) {
+                    if (i = 0) {
+                        var option = $('<option></option>').attr('value', '').text('Selecciona...');
+                        select.append(option);
+                    }
+                    var option = $('<option></option>').attr('value', nave.id).text(nave.nombre);
+                    select.append(option);
+                }
+                );
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                Swal.fire({
+                    title: "La solicitúd no se pudo procesar!",
+                    icon: "error",
+                    draggable: true
+                });
+            }
+        });
+    }
+
         

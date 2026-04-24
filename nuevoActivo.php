@@ -56,7 +56,7 @@
                                                     <option value="2">MOBILIARIO y EQ DE OFICINA</option>
                                                     <option value="3">MAQUINAS Y EQUIPOS</option>
                                                     <option value="4">HERRAMIENTAS GENERALES</option>
-                                                    <option value="5">ACCESORIO</option>
+                                                    <option value="5">ACCESORIOS</option>
                                                 </select>
                                             </div>
 
@@ -73,7 +73,7 @@
                                                 <div class="form-check form-switch mt-4">
                                                     <input class="form-check-input" type="checkbox" id="checkEsPrestamo" name="es_prestamo" value="0" onchange="conjunto_computadora()">
                                                     <label class="form-check-label" for="checkEsPrestamo">
-                                                        ¿Es activo para renta?
+                                                        ¿Es activo para renta/prestamo?
                                                         <small class="d-block text-muted" style="font-size: 0.6rem;">(Renta a externos)</small>
                                                     </label>
                                                 </div>
@@ -146,13 +146,12 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label">Nave / Planta</label>
-                                                <select class="form-select" id="selectNave" name="selectNave">
-                                                    <option selected disabled>Seleccione...</option>
-                                                    <option value="1">SFG</option>
+                                                <select class="form-select" id="selectNave" name="selectNave">  
+                                                    <option value="">Seleccione...</option>                                                  
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="form-label">Ubicación</label>
+                                                <label class="form-label">Área / Laboratorio</label>
                                                 <input type="text" class="form-control" name="ubicacion" id="ubicacion" placeholder="Ej. Estante, Bodega...">
                                             </div>
                                             <div class="col-md-3">
@@ -346,6 +345,14 @@
         
         getEmpleados('#slcResponsable');
         getRegiones('#selectRegion');
+        getNaves('#selectNave');
+
+        $('#slcResponsable').select2({
+            dropdownParent: $('#formActivos'),
+            width: '100%',
+            height: '880px',
+            placeholder: 'Seleccione un responsable...'
+        });
     });
 
     </script>

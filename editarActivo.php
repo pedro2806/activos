@@ -71,7 +71,7 @@
                                     <div class="col-md-4">
                                         <div class="form-check form-switch mt-4">
                                             <input class="form-check-input" type="checkbox" id="editEsPrestamo" name="es_prestamo">
-                                            <label class="form-check-label" for="editEsPrestamo">¿Es un préstamo?</label>
+                                            <label class="form-check-label" for="editEsPrestamo">¿Es activo para renta/prestamo?</label>
                                         </div>
                                     </div>
                                 </div>
@@ -122,20 +122,24 @@
 
                                 <h6 class="text-muted text-uppercase mb-3 mt-4 small fw-bold border-bottom pb-2">Ubicación</h6>
                                 <div class="row mb-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Región</label>
                                         <select class="form-select" id="editSelectRegion" name="selectRegion">
                                             <option value="">Seleccione...</option>                                            
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Nave / Planta</label>
                                         <select class="form-select" id="editNave" name="id_nave">
                                             <option value="1">SFG</option>
                                             <option value="2">EL MARQUES</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Área / Laboratorio</label>
+                                        <input type="text" class="form-control" id="editUbicacion" name="id_ubicacion">
+                                    </div>
+                                    <div class="col-md-3">
                                         <label class="form-label">Usuario Responsable</label>
                                         <select class="form-select" id="editSlcResponsable" name="editSlcResponsable">
                                             <option value="">Seleccione...</option>                                            
