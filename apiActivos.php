@@ -222,7 +222,7 @@ if ($accion == 'desasignarActivo') {
         echo json_encode(['status' => 'error', 'message' => 'id no recibido.']);
         exit;
     }
-    $stmt = $conn->prepare("UPDATE activos SET id_usuario = 0 WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE activos SET id_usuario = 0, nombre_usuario = NULL WHERE id = ?");
     $stmt->bind_param("i", $id);
     if ($stmt->execute()) {
         echo json_encode(['status' => 'success']);
