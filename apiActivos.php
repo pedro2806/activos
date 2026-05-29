@@ -182,6 +182,58 @@ if ($accion == 'guardarEdicion') {
 }
 
 // ---------------------------------------------------------
+// ACCIÓN: ACTIVOS POR EMPLEADO (vista rápida loginMaster)
+// ---------------------------------------------------------
+if ($accion == 'activosPorEmpleado') {
+    $noEmpleado = isset($_POST['noEmpleado']) ? intval($_POST['noEmpleado']) : 0;
+
+    if ($noEmpleado <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'noEmpleado no recibido.', 'data' => []]);
+        exit;
+    }
+
+    $sql = "SELECT a.id, a.descripcion, a.marca, a.modelo, a.no_serie, a.id_interno,
+                   a.cpu_info, a.monitor_info, a.ubicacion, a.fecha_adquisicion,
+                   a.observaciones, a.es_accesorio,
+                   ta.nombre AS tipo_activo,
+                   n.nombre  AS nave
+            FROM activos a
+            LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
+            LEFT JOIN cat_naves         n  ON a.id_nave        = n.id
+            INNER JOIN mess_rrhh.usuarios u ON a.id_usuario    = u.id_usuario
+            WHERE a.estatus = 1 AND u.noEmpleado = ?
+            ORDER BY a.id DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $noEmpleado);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    echo json_encode(['status' => 'success', 'data' => $rows]);
+    $stmt->close();
+}
+
+// ---------------------------------------------------------
+// ACCIÓN: DESASIGNAR ACTIVO (vista rápida loginMaster)
+// El usuario indica que ya no tiene el activo en resguardo:
+// se deja id_usuario = 0 para que quede sin dueño.
+// ---------------------------------------------------------
+if ($accion == 'desasignarActivo') {
+    $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+    if ($id <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'id no recibido.']);
+        exit;
+    }
+    $stmt = $conn->prepare("UPDATE activos SET id_usuario = 0 WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => $stmt->error]);
+    }
+    $stmt->close();
+    exit;
+}
+
+// ---------------------------------------------------------
 // ACCIÓN: OBTENER FOTOS
 // ---------------------------------------------------------
 if ($accion == 'obtener_fotos') {
