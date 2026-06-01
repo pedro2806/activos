@@ -200,7 +200,7 @@ if ($accion == 'activosPorEmpleado') {
             FROM activos a
             LEFT JOIN cat_tipos_activos ta ON a.id_tipo_activo = ta.id
             LEFT JOIN cat_naves         n  ON a.id_nave        = n.id
-            INNER JOIN mess_rrhh.usuarios u ON a.id_usuario    = u.id_usuario
+            INNER JOIN mess_rrhh.usuarios u ON a.id_usuario    = u.noEmpleado
             WHERE a.estatus = 1 AND u.noEmpleado = ?
             ORDER BY a.id DESC";
     $stmt = $conn->prepare($sql);
