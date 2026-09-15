@@ -182,7 +182,7 @@ if ($accion == 'guardarEdicion') {
 }
 
 // ---------------------------------------------------------
-// ACCIÓN: ACTIVOS POR EMPLEADO (vista rápida loginMaster)
+// ACCIaaaÓN: ACTIVOS POR EMPLEADO (vista rápida loginMaster)
 // ---------------------------------------------------------
 if ($accion == 'activosPorEmpleado') {
     $noEmpleado = isset($_POST['noEmpleado']) ? intval($_POST['noEmpleado']) : 0;
