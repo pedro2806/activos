@@ -433,7 +433,7 @@
                         $('#detRegistro').text(p.fecha_registro);
                         $('#detMoneda').text(p.moneda);
                         $('#detRentaDia').text(parseFloat(p.renta_dia).toLocaleString('en-US', {minimumFractionDigits: 2}));
-                        $('#detTipo').text(p.tipo_movimiento == 'renta' ? 'Renta' : 'Préstamo' + (p.ov ? ` - OV: ${p.ov}` : '') );
+                        $('#detTipo').text((p.tipo_movimiento == 'renta' ? 'Renta' : 'Préstamo') + (p.ov ? ` - OV: ${p.ov}` : '') );
 
                         $('#detTotalMoneda').text(p.moneda);
                         $('#detTotalRenta').text(totalEstimado.toLocaleString('en-US', {minimumFractionDigits: 2}));

@@ -301,7 +301,6 @@
         var depreciacion = parseFloat(document.getElementById('inputDepreciacion').value) || 0;
         var remanente = costo - depreciacion;
         document.getElementById('inputRemanente').value = remanente.toFixed(2);
-        calcularDepreciacion();
     }
 
     function calcularDepreciacion() {

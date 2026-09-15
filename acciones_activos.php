@@ -3,27 +3,6 @@ include_once 'conn.php';
 
     $accion = isset($_POST['opcion']) ? $_POST['opcion'] : '';
 
-    $tipoActivo = isset($_POST['tipoActivo']) ? $_POST['tipoActivo'] : '';
-    $descripcion = $_POST['descripcion'];   
-    $marca = isset($_POST['marca']) ? $_POST['marca'] : '';
-    $modelo = isset($_POST['modelo']) ? $_POST['modelo'] : '';
-    $noSerie = isset($_POST['noSerie']) ? $_POST['noSerie'] : '';
-    $idInterno = isset($_POST['idInterno']) ? $_POST['idInterno'] : '';
-    $cpuInfo = isset($_POST['cpuInfo']) ? $_POST['cpuInfo'] : '';
-    $monitorInfo = isset($_POST['monitorInfo']) ? $_POST['monitorInfo'] : '';
-    $region = isset($_POST['region']) ? $_POST['region'] : '';
-    $nave = isset($_POST['selectNave']) ? $_POST['selectNave'] : '';
-    $usuario = isset($_POST['usuario']) ? $_POST['usuario'] : '';
-    $moi = isset($_POST['moi']) ? $_POST['moi'] : '';
-    $costo = isset($_POST['costo']) ? floatval($_POST['costo']) : 0.0;
-    $depreciacion = isset($_POST['depreciacion']) ? floatval($_POST['depreciacion']) : 0.0;
-    $remanente = isset($_POST['remanente']) ? floatval($_POST['remanente']) : 0.0;
-    $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : '';
-    $EsAccesorio = isset($_POST['EsAccesorio']) ? intval($_POST['EsAccesorio']) : 0;
-    $ubicacion = isset($_POST['ubicacion']) ? $_POST['ubicacion'] : '';
-    $fechaAdquisicion = isset($_POST['fecha_adquisicion']) ? $_POST['fecha_adquisicion'] : null;
-    $fotos = isset($_POST['fotos']) ? $_POST['fotos'] : '';
-
     $noEmpleado = isset($_COOKIE['noEmpleado']) ? intval($_COOKIE['noEmpleado']) : 0;
 
 

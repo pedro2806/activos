@@ -44,7 +44,7 @@ class ActivosAPI {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, NOW(), ?, 1, ?)";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("isssssiissiddddsis", $tipo, $desc, $marca, $modelo, $serie, $idInt, $usuario, $nave, $cpu, $mon, $moi, $costo, $depre, $rem, $obs, $accesorio, $ubicacion);
+        $stmt->bind_param("isssssiissddddsis", $tipo, $desc, $marca, $modelo, $serie, $idInt, $usuario, $nave, $cpu, $mon, $moi, $costo, $depre, $rem, $obs, $accesorio, $ubicacion);
 
         if ($stmt->execute()) {
             $id = $this->conn->insert_id;
