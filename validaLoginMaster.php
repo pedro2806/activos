@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../incidencias/conn.php';
 
 $accion = isset($_POST['accion']) ? $_POST['accion'] : '';
@@ -17,8 +18,11 @@ if (empty($id_usuario) || empty($noEmpleado)) {
     echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
     exit;
 } else {
-    $Qempresas  =  "SELECT  *, TIMESTAMPDIFF(YEAR,fechaIngreso,CURDATE()) AS antiguedad, rol FROM usuarios WHERE usuario  = '".$usuario."' AND estatus = 1";
-    $res2 =  mysqli_query( $conn, $Qempresas ) or die (mysqli_error($conn));
+    $Qempresas  =  "SELECT  *, TIMESTAMPDIFF(YEAR,fechaIngreso,CURDATE()) AS antiguedad, rol FROM usuarios WHERE usuario  = ? AND estatus = 1";
+    $stmtLogin = mysqli_prepare($conn, $Qempresas) or die (mysqli_error($conn));
+    mysqli_stmt_bind_param($stmtLogin, "s", $usuario);
+    mysqli_stmt_execute($stmtLogin);
+    $res2 = mysqli_stmt_get_result($stmtLogin);
     $nr = mysqli_num_rows($res2);
 
     while ($row2 = mysqli_fetch_array($res2)){
@@ -40,7 +44,6 @@ if (empty($id_usuario) || empty($noEmpleado)) {
         echo '<script>document.cookie = "SesionLogin=LoginMaster; expires=" + new Date(Date.now() + 99999000).toUTCString() + ";SameSite=Lax;";</script>';
         echo '<script>window.location.assign("index.php")</script>';                
 
-        session_start();
         $_SESSION['nombredelusuario'] = $nombreEmpleado;
         $_SESSION['noEmpleado'] = $noEmpleado;
         $_SESSION['rol'] = $rol;

@@ -304,7 +304,7 @@
                     var select = $(seleccionado);
                     i = 0;
                     data.forEach(function(usuarios) {
-                        if (i = 0) {
+                        if (i === 0) {
                             var option = $('<option></option>').attr('value', '0').text('Selecciona...');
                             select.append(option);
                         }
@@ -455,7 +455,7 @@
                 var select = $(seleccionado);
                 i = 0;
                 data.forEach(function(region) {
-                    if (i = 0) {
+                    if (i === 0) {
                         var option = $('<option></option>').attr('value', '').text('Selecciona...');
                         select.append(option);
                     }   
@@ -600,7 +600,7 @@
                 var select = $(seleccionado);
                 i = 0;
                 data.forEach(function(nave) {
-                    if (i = 0) {
+                    if (i === 0) {
                         var option = $('<option></option>').attr('value', '').text('Selecciona...');
                         select.append(option);
                     }
